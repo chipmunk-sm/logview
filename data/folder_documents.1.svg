@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="SVGRoot" width="256" height="256" enable-background="new" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>Copyright (C) 2021 chipmunk.sm &lt;dannico@linuxmail.org&gt;</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="matrix(2.019 0 0 1.8447 -87.499 -107.94)" fill="none" stroke-width="1.1391">
+  <g transform="translate(-3.8269,-7.9833)" enable-background="new">
+   <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#000" stroke-width="2.5908"/>
+  </g>
+  <g transform="translate(-5.6103,-5.4389)">
+   <path d="m93.839 158.38h-2.3181v-50.178h30.054v2.4727" enable-background="new" opacity=".95" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m93.839 158.38h-2.3181v-50.178h30.054v2.4727" enable-background="new" opacity=".95" stroke="#000" stroke-width="2.5908"/>
+  </g>
+  <g transform="translate(-.67337 -.43551)">
+   <path d="m93.839 158.38h-2.3181v-50.178h30.054v2.4727" enable-background="new" opacity=".95" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m93.839 158.38h-2.3181v-50.178h30.054v2.4727" enable-background="new" opacity=".95" stroke="#000" stroke-width="2.5908"/>
+  </g>
+  <g transform="translate(4.1677,4.5617)">
+   <path d="m116.49 117.35h-19.556m19.556 32.167h-19.556m19.556-10.722h-19.556m19.556-10.722h-19.556m-5.4094-19.874h30.054v50.178h-30.054z" enable-background="new" opacity=".95" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m116.49 117.35h-19.556m19.556 32.167h-19.556m19.556-10.722h-19.556m19.556-10.722h-19.556m-5.4094-19.874h30.054v50.178h-30.054z" enable-background="new" opacity=".95" stroke="#000" stroke-width="2.5908"/>
+  </g>
+ </g>
+</svg>

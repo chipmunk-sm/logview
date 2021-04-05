@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="SVGRoot" width="256" height="256" enable-background="new" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>Copyright (C) 2021 chipmunk.sm &lt;dannico@linuxmail.org&gt;</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="matrix(2.019 0 0 1.8447 -87.499 -107.94)" fill="none" stroke-width="1.1391">
+  <g transform="translate(-3.8269,-7.9833)" enable-background="new">
+   <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#000" stroke-width="2.5908"/>
+  </g>
+  <g>
+   <path d="m109.19 112.83-11.546 7.8415-11.545 7.8415 5.8815-6e-3v-0.12918h34.628v0.0953l5.8718-5e-3 -11.645-7.8182zm-17.21 15.677v29.171l13.357 0.0438 5e-3 -17.414 9.5375-0.0877 0.12975 17.501 11.598-0.0438v-29.205" opacity=".95" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m109.19 112.83-11.546 7.8415-11.545 7.8415 5.8815-6e-3v-0.12918h34.628v0.0953l5.8718-5e-3 -11.645-7.8182zm-17.21 15.677v29.171l13.357 0.0438 5e-3 -17.414 9.5375-0.0877 0.12975 17.501 11.598-0.0438v-29.205" opacity=".95" stroke="#000006" stroke-width="2.5908"/>
+  </g>
+ </g>
+</svg>

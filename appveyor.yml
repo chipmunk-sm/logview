@@ -1,0 +1,36 @@
+ 
+version: 0.0.{build}
+
+environment:
+  matrix:
+  - QTDIR: C:\Qt\5.15\msvc2019_64
+    BUILD_PLATFORMID: "x64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    WINVER: Win10.2019
+  - QTDIR: C:\Qt\5.14\msvc2017_64
+    BUILD_PLATFORMID: "x64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    WINVER: Win10
+  - QTDIR: C:\Qt\5.14\msvc2017
+    BUILD_PLATFORMID: "x86"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    WINVER: Win10
+  - QTDIR: C:\Qt\5.13\msvc2015_64
+    BUILD_PLATFORMID: "x64"
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    WINVER: Win8
+
+build_script:
+  - build.cmd
+
+artifacts:
+  - path: '*.zip'
+    name: 'logview.%BUILD_PLATFORMID%.%APPVEYOR_BUILD_VERSION%'
+
+deploy:
+- provider: GitHub
+  description: 'New release of logview'
+#  auth_token:
+#    secure: azJMeKO4Mknyw014rSykTRmDuUinLoKKdOzwWBPA9VjDjGQO5t+r6pRPz6HNpR4A
+  on:
+   appveyor_repo_tag: true

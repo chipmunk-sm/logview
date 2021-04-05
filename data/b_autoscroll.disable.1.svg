@@ -1,0 +1,34 @@
+<svg id="SVGRoot" enable-background="new" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <clipPath id="clipPath899">
+   <use xlink:href="#g895"/>
+  </clipPath>
+ </defs>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>Copyright (C) 2021 chipmunk.sm &lt;dannico@linuxmail.org&gt;</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g clip-path="url(#clipPath899)" fill="none" stroke="#000" stroke-width="8">
+  <g id="g895">
+   <path d="m31.168 19.755c0.22834 72.163 0.45667 144.33 0.68501 216.49h192.86c0.0524-57.493 0.10471-114.99 0.15707-172.48-9.8823-14.67-19.765-29.339-29.647-44.009-54.685-3.33e-4 -109.37-6.67e-4 -164.06-1e-3z" fill="none" stroke="#fff" stroke-width="20"/>
+   <path d="m76.948 122.92c17.185 18.878 34.37 37.757 51.556 56.635 16.847-18.624 33.693-37.249 50.54-55.873" fill="none" stroke="#fff" stroke-width="20"/>
+   <path d="m76.948 152.63c17.185 18.878 34.37 37.757 51.556 56.635 16.847-18.624 33.693-37.249 50.54-55.873" fill="none" stroke="#fff" stroke-width="20"/>
+  </g>
+  <g fill="none" stroke="#000" stroke-width="8">
+   <path d="m31.168 19.755c0.22834 72.163 0.45667 144.33 0.68501 216.49h192.86c0.0524-57.493 0.10471-114.99 0.15707-172.48-9.8823-14.67-19.765-29.339-29.647-44.009-54.685-3.33e-4 -109.37-6.67e-4 -164.06-1e-3z"/>
+   <path d="m76.948 122.92c17.185 18.878 34.37 37.757 51.556 56.635 16.847-18.624 33.693-37.249 50.54-55.873"/>
+   <path d="m76.948 152.63c17.185 18.878 34.37 37.757 51.556 56.635 16.847-18.624 33.693-37.249 50.54-55.873"/>
+  </g>
+ </g>
+ <ellipse cx="127.68" cy="79.914" rx="47.949" ry="47.589" fill="#f00"/>
+</svg>

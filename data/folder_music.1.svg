@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="SVGRoot" width="256" height="256" enable-background="new" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>Copyright (C) 2021 chipmunk.sm &lt;dannico@linuxmail.org&gt;</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="matrix(2.019 0 0 1.8447 -87.499 -107.94)" fill="none" stroke-width="1.1391">
+  <g transform="translate(-3.8269,-7.9833)" enable-background="new">
+   <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#000" stroke-width="2.5908"/>
+  </g>
+  <g>
+   <path d="m121.03 149.17a3.6298 5.6638 64.792 0 1-5.6193 5.0681 3.6298 5.6638 64.792 0 1-5.0717-2.7428 3.6298 5.6638 64.792 0 1 5.6193-5.068 3.6298 5.6638 64.792 0 1 5.0717 2.7428zm-0.0223 0.31799 2.5341-36.148-26.256 5.7106-2.5341 36.148m-5.0884-3.0526c-2.9525 0.64213-5.4685 2.9114-5.6194 5.0685-0.15152 2.1571 2.1193 3.3854 5.0717 2.7432 2.9525-0.64213 5.4685-2.9114 5.6194-5.0685 0.15152-2.1572-2.1193-3.3854-5.0717-2.7432z" opacity=".95" stroke="#fff" stroke-width="5.1817"/>
+   <path d="m121.03 149.17a3.6298 5.6638 64.792 0 1-5.6193 5.0681 3.6298 5.6638 64.792 0 1-5.0717-2.7428 3.6298 5.6638 64.792 0 1 5.6193-5.068 3.6298 5.6638 64.792 0 1 5.0717 2.7428zm-0.0223 0.31799 2.5341-36.148-26.256 5.7106-2.5341 36.148m-5.0884-3.0526c-2.9525 0.64213-5.4685 2.9114-5.6194 5.0685-0.15152 2.1571 2.1193 3.3854 5.0717 2.7432 2.9525-0.64213 5.4685-2.9114 5.6194-5.0685 0.15152-2.1572-2.1193-3.3854-5.0717-2.7432z" opacity=".95" stroke="#000" stroke-width="2.5908"/>
+  </g>
+ </g>
+</svg>

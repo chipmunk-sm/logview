@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="SVGRoot" width="256" height="256" enable-background="new" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>Copyright (C) 2021 chipmunk.sm &lt;dannico@linuxmail.org&gt;</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(-1.9933 2.0009)">
+  <g transform="matrix(2.019,0,0,1.8447,-85.506,-109.94)" fill="none" stroke-width="1.1391">
+   <g transform="translate(-3.8269,-7.9833)" enable-background="new">
+    <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#fff" stroke-width="5.1817"/>
+    <path d="m120.52 100.29-64.344 0.17858m44.216-10.719 20.12 10.547 44.406 0.44359 0.0115 81.343h-108.4l-0.32506-92.394z" stroke="#000" stroke-width="2.5908"/>
+   </g>
+   <g transform="matrix(.21392 0 0 .20791 78.105 106.78)" enable-background="new">
+    <path d="m267.77 197.54a1.0478 0.90832 0 0 1-1.0478 0.90833 1.0478 0.90832 0 0 1-1.0478-0.90833 1.0478 0.90832 0 0 1 1.0478-0.90832 1.0478 0.90832 0 0 1 1.0478 0.90832zm20.794 0a1.0478 0.90832 0 0 1-1.0478 0.90833 1.0478 0.90832 0 0 1-1.0478-0.90833 1.0478 0.90832 0 0 1 1.0478-0.90832 1.0478 0.90832 0 0 1 1.0478 0.90832zm20.794 0a1.0478 0.90832 0 0 1-1.0478 0.90833 1.0478 0.90832 0 0 1-1.0478-0.90833 1.0478 0.90832 0 0 1 1.0478-0.90832 1.0478 0.90832 0 0 1 1.0478 0.90832zm-202.24 30.379h64.443v19.409h-64.443zm-83.551 25.316h231.54v26.16h-231.54zm-85.799-270.04h403.14v238.82h-403.14z" enable-background="new" opacity=".95" stroke="#fff" stroke-width="24.57"/>
+    <path d="m267.77 197.54a1.0478 0.90832 0 0 1-1.0478 0.90833 1.0478 0.90832 0 0 1-1.0478-0.90833 1.0478 0.90832 0 0 1 1.0478-0.90832 1.0478 0.90832 0 0 1 1.0478 0.90832zm20.794 0a1.0478 0.90832 0 0 1-1.0478 0.90833 1.0478 0.90832 0 0 1-1.0478-0.90833 1.0478 0.90832 0 0 1 1.0478-0.90832 1.0478 0.90832 0 0 1 1.0478 0.90832zm20.794 0a1.0478 0.90832 0 0 1-1.0478 0.90833 1.0478 0.90832 0 0 1-1.0478-0.90833 1.0478 0.90832 0 0 1 1.0478-0.90832 1.0478 0.90832 0 0 1 1.0478 0.90832zm-202.24 30.379h64.443v19.409h-64.443zm-83.551 25.316h231.54v26.16h-231.54zm-85.799-270.04h403.14v238.82h-403.14z" enable-background="new" opacity=".95" stroke="#000" stroke-width="12.285"/>
+   </g>
+  </g>
+ </g>
+</svg>
