@@ -4,10 +4,10 @@ matrix:
   include:
     #- name: "Xenial 16.04 amd64"
     #  dist: xenial
-#    - name: "Bionic 18.04 amd64"
-#      dist: bionic
-    - name: "Focal 20.04 amd64"
-      dist: focal
+    - name: "Bionic 18.04 amd64"
+      dist: bionic
+#    - name: "Focal 20.04 amd64"
+#      dist: focal
       os: linux
       addons:
         apt:
