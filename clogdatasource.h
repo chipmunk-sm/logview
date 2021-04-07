@@ -35,7 +35,7 @@ private:
 
     mutable QFile            m_fileRead;
     QFile                    m_fileWatch;
-    std::atomic<int32_t>     m_rowsInFile = 0;
+    std::atomic<int32_t>     m_rowsInFile = {0};
 
     std::condition_variable  m_conditionVariable_sleepTimer;
     std::mutex               m_mutex_sleepTimer;
