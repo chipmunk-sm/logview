@@ -71,6 +71,7 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
+    .travis.yml \
     android/AndroidManifest.xml \
     android/gradle.properties \
     android/gradle.properties \
