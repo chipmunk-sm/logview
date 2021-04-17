@@ -1,6 +1,6 @@
 language: cpp
 
-sudo: required
+#sudo: required
 #cache:
   #directories:
     #- /var/cache/apt/
@@ -31,8 +31,8 @@ before_install:
     #linux
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         sudo apt-get -y install qt5-qmake qtbase5-dev qttools5-dev-tools;
-        sudo apt-get -y install devscripts
-        #sudo apt-get -y install sbuild schroot debootstrap apt-cacher-ng
+        sudo apt-get -y install devscripts;
+        #sudo apt-get -y install sbuild schroot debootstrap apt-cacher-ng;
         echo $PATH;
       fi
     #osx
