@@ -30,7 +30,7 @@ jobs:
 before_install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         sudo apt-get -y install qt5-qmake qtbase5-dev qttools5-dev-tools;
-        sudo apt-get -y install devscripts fakeroot;
+        sudo apt-get -y install devscripts fakeroot debhelper;
         echo $PATH;
       fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
