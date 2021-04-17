@@ -28,21 +28,17 @@ jobs:
       compiler: clang
       
 before_install:
-    #linux
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
         sudo apt-get -y install qt5-qmake qtbase5-dev qttools5-dev-tools;
         sudo apt-get -y install devscripts;
-        #sudo apt-get -y install sbuild schroot debootstrap apt-cacher-ng;
         echo $PATH;
       fi
-    #osx
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         brew update ;
         brew install qt5 ;
         export PATH=$(brew --prefix)/opt/qt5/bin:$PATH ;
         echo $PATH;
       fi
-    #windows
     - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
         echo $PATH;
       fi
