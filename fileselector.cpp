@@ -6,6 +6,7 @@
 #include "fileselectorstandardmodel.h"
 #include "iconhelper.h"
 #include "stylehelper.h"
+#include "versionhelper.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -48,6 +49,9 @@
 FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QString defaultName, QWidget * parent)
     : QWidget(parent)
 {
+    //m_windowTitle += "[" PRODUCTVERSIONSTRING "]";
+
+    setWindowTitle(QApplication::applicationName()  + (" [" PRODUCTVERSIONSTRING "]"));
     setWindowIcon(QPixmap(":/data/logview_logo.svg"));
 
     m_selectedName = defaultName;
@@ -202,7 +206,7 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
         if (checkPath.exists())
         {
             m_lineEdit->setText(tmpPath);
-            setWindowTitle(QObject::tr("Select "));
+            //setWindowTitle(QObject::tr("Select "));
             break;
         }
         tmpPath = checkPath.dir().path();
@@ -606,7 +610,7 @@ void FileSelector::onTextChanged(const QString & path)
     if (!path.isEmpty())
     {
         QFileInfo checkPath(path);
-        if (checkPath.exists() && (m_saveMode || checkPath.isFile()))
+        if (checkPath.exists() && (!m_saveMode || checkPath.isFile()))
             m_selectedPath = path;
     }
 

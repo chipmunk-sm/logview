@@ -1,6 +1,8 @@
 build
 debug
 release
+Release
+Debug
 GeneratedFiles
 x64
 x86
@@ -25,3 +27,6 @@ x86
 /android/gradle.properties
 /android/gradlew
 /android/gradle
+/Makefile
+/*.kate-swp
+/Installer/include.wxi

@@ -40,6 +40,7 @@
 #include "iconhelper.h"
 #include "logviewtable.h"
 #include "stylehelper.h"
+#include "versionhelper.h"
 
 #ifndef LOG_ERROR_A
 #   ifndef QDEBUG_H
@@ -63,13 +64,14 @@ LogViewWidget::LogViewWidget(QString windowTitle, QString fileName)
     , m_filename(std::move(fileName))
 {
     DEBUGTRACE();
-
+    m_windowTitle += " [" PRODUCTVERSIONSTRING "]";
     m_default_Font = QApplication::font();
 
     //setWindowIcon(IconHelper::CreateIcon("LOG", "View", font()));
     setWindowIcon(QPixmap(":/data/logview_logo.svg"));
 
-    setWindowTitle(m_windowTitle + " [" + m_filename + "]");
+
+    setWindowTitle(m_windowTitle + " [" + m_filename + "]" );
 
     m_scrollbar = new QScrollBar(this);
     m_scrollbar->setOrientation(Qt::Vertical);
@@ -383,7 +385,7 @@ void LogViewWidget::updateCtrlStyle()
     {
         auto xTmp =  sc * 0.4 * m_default_Font.pointSizeF();
         auto fontSz = xTmp;
-        fontX.setPointSize(fontSz);
+        fontX.setPointSize(static_cast<int>(fontSz));
     }
 
 //    qDebug() << "defF " << val;
@@ -628,6 +630,7 @@ void LogViewWidget::displayRowNumber2(bool bSave)
         enableElement = !enableElement;
 
     m_table->verticalHeader()->setVisible(enableElement);
+    m_table->resize(QSize());
 
     if(bSave)
         settings.setValue(KEY_DISPLAY_ROW_NUMBER, enableElement);

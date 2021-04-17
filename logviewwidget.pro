@@ -7,7 +7,27 @@ TEMPLATE = app
 QT += core gui widgets
 #CONFIG += c++11
 #CONFIG += c++14
-CONFIG += c++17
+
+win32:!winrt:!wince {
+    CONFIG += c++latest
+} else {
+    equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 12) {
+        #message("Qt 5.11 and earlier")
+        QMAKE_CXXFLAGS += -std=c++17
+        CONFIG += c++1z
+    } else {
+       #message("Qt 5.12 and later")
+       CONFIG += c++17
+    }
+}
+
+linux-clang++{
+    message("**** clang++")
+}
+
+linux-g++{
+    message("**** g++")
+}
 
 win32:!winrt:!wince {
     QT += winextras
@@ -97,6 +117,7 @@ DISTFILES += \
     android/res/mipmap-xxxhdpi/ic_launcher.png \
     android/ic_launcher-web.png \
     README.md \
+    build.sh \
     debian/compat \
     debian/control \
     debian/copyright \

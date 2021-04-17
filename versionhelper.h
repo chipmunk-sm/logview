@@ -6,7 +6,7 @@
 #include "ver.h"
 
 #define stringify(X) #X
-#define quote(X)  stringify(X)
+#define xquote(X)  stringify(X)
 
 #ifndef FVER1
 #define FVER1 0
@@ -45,17 +45,17 @@
 #endif // !FVER_NAME
 
 #ifndef PRODUCTVERSIONSTRING
-#define PRODUCTVERSIONSTRING quote(FVER1.FVER2.FVER3.FVER4) " " FVER_NAME
+#define PRODUCTVERSIONSTRING xquote(FVER1.FVER2.FVER3.FVER4) " " FVER_NAME
 #endif // !PRODUCTVERSIONSTRING
 
-#ifndef S_VER_YEAR
-#ifndef BUILDDATETIME
-#define BUILDDATETIME __DATE__ " " __TIME__
-#endif // !BUILDDATETIME
-#else
-#ifndef BUILDDATETIME
-#define BUILDDATETIME S_VER_YEAR "." S_VER_MONTH "." S_VER_DAY " " S_VER_HOUR ":" S_VER_MINUTE ":" S_VER_SECOND
-#endif // !BUILDDATETIME
-#endif // !
+//#ifndef S_VER_YEAR
+//#ifndef BUILDDATETIME
+//#define BUILDDATETIME __DATE__ " " __TIME__
+//#endif // !BUILDDATETIME
+//#else
+//#ifndef BUILDDATETIME
+//#define BUILDDATETIME S_VER_YEAR "." S_VER_MONTH "." S_VER_DAY " " S_VER_HOUR ":" S_VER_MINUTE ":" S_VER_SECOND
+//#endif // !BUILDDATETIME
+//#endif // !
 
 #endif // !VERSIONHELPER_H
