@@ -7,10 +7,10 @@
 # tar zxf .
 
 #+ colors const
-    colorGREEN='\033[0;32m'
-    colorRED='\033[0;31m'
-    colorBLUE='\033[0;34m'
-    colorDef='\033[0m'
+#    colorGREEN='\033[0;32m'
+#    colorRED='\033[0;31m'
+#    colorBLUE='\033[0;34m'
+#    colorDef='\033[0m'
 #~ colors const
 
 Patch=0
