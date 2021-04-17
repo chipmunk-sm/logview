@@ -188,12 +188,12 @@ gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
 
 if [[ 1 -ge "$gitTagListCount" ]]; then
     echo "Use all entries for a release note:"
-     releaseNote=$(git -C $CURR_DIR log --pretty=format:"  * %s [%aN] %adYYYY-MM-DD")
+     releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %s [%aN] %ad")
 else
     tmpval=$(echo "${gitTagList}" | awk 'NR==2{print}')
     gitTagRange="${tmpval}..${revision}"
     echo "Release note range [$gitTagRange]"
-    releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --pretty=format:"  * %s [%aN] %adYYYY-MM-DD")
+    releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %s [%aN] %ad")
 fi
 
 #sed 's/^/  * /'
