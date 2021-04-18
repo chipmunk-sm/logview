@@ -22,7 +22,7 @@ jobs:
       run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
               chmod +x build.sh;
-              ./build.sh -b 0 -c GCC -x "linux" -n "Test";
+              ./build.sh -b 0 -c gcc -x "linux" -n "Test";
           elif  [[ "$RUNNER_OS" == "Windows" ]]; then
               echo "$RUNNER_OS";
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
