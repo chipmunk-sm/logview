@@ -23,9 +23,9 @@ jobs:
           if [[ "$RUNNER_OS" == "Linux" ]]; then
               chmod +x build.sh;
               ./build.sh -b 0 -c GCC -x "linux" -n "Test";
-          elif  [[ "$RUNNER_OS" == "Windows" ]]
+          elif  [[ "$RUNNER_OS" == "Windows" ]]; then
               echo "$RUNNER_OS";
-          elif [[ "$RUNNER_OS" == "macOS" ]]
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
                echo "$RUNNER_OS";
           else
                echo "Error $RUNNER_OS";
