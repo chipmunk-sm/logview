@@ -13,13 +13,18 @@ jobs:
     name: update changelog
     runs-on: ubuntu-latest
     steps:
+    - name: Generate build number
+      uses: einaregilsson/build-number@v3
+      with:
+        token: ${{secrets.github_token}}
     - name: Checkout master      
       uses: actions/checkout@master
       with:
-          ref: master
-          fetch-depth: 0
+        ref: master
+        fetch-depth: 0
     - name: Run info        
       run: |
+            buildnum=$BUILD_NUMBER
             CURR_DIR=$(pwd)
             revision="HEAD"
             buildName="Auto-build"
