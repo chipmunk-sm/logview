@@ -21,6 +21,26 @@ jobs:
     - name: Run info        
       run: |
             CURR_DIR=$(pwd)
+            revision="HEAD"
+            buildName="Auto-build"
+            FullCommit=$(git -C $CURR_DIR rev-parse $revision)
+            if [ -z ${FullCommit+x} ]; then
+                echo "Failed on get commit for $revision revision [$FullCommit]";
+                exit 1;
+            fi
+            echo "* FullCommit [$FullCommit]"
+            LastTag=$(git -C $CURR_DIR describe --tags --first-parent --match "*" $revision)
+            echo "* TAG [$LastTag]"
+            if [ -z ${LastTag+x} ]; then
+              LastTag="0.0.0.$buildnum"
+              echo "Failed on get tag for revision $revision - defaulting to $LastTag"
+            fi
+            parsestr="$(echo -e "${LastTag}" | sed -e 's/^[a-zA-Z]*//')"
+            Major=`echo "${parsestr}" | awk -F"[./-]" '{print $1}'`
+            Minor=`echo "${parsestr}" | awk -F"[./-]" '{print $2}'`
+            buildName=`echo "${parsestr}" | awk -F"[./-]" '{print $3}'`
+            echo -e "* [$LastTag] => [$Major.$Minor.$Patch.$buildnum]"
+            echo -e "* Release Name [$buildName]"
             gitTagList=$(git -C $CURR_DIR tag --sort=-version:refname)
             gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
             if [[ 1 -ge "$gitTagListCount" ]]; then
