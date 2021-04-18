@@ -35,9 +35,9 @@ jobs:
       run: |
         echo "name: ${{ github.event.pusher.name }}"
         echo "email: ${{ github.event.pusher.email }}"
-        git config --global user.email ${{ github.event.pusher.email }}
-        git config --global user.name ${{ github.event.pusher.name }}"
-        git commit -m 'Autoupdate changelog' -- ./debian/changelog
+        git config --global user.email "${{ github.event.pusher.email }}"
+        git config --global user.name "${{ github.event.pusher.name }}"
+        git commit -m "Autoupdate changelog" -- ./debian/changelog
     - name: Push changes to master
       uses: ad-m/github-push-action@master
       with:
