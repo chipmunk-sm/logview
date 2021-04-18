@@ -150,7 +150,7 @@ if [[ "$REQUIRES_INSTALL_QT_5" = true ]]; then
     # Qt 5 missing or wrong version...
     #linux
     if [[ "$osname" == "linux" ]]; then
-        sudo apt-get -y --nodeps install qt5-qmake qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
+        sudo apt-get -y install --no-install-recommends qt5-qmake qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
 #         sudo apt-get -y install sbuild schroot debootstrap
     fi
     #osx
