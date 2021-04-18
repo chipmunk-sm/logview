@@ -47,6 +47,8 @@ fi
 
 CURR_DIR=$(pwd)
 
+osname=${osname,,}
+
 chmod +x "${CURR_DIR}/debian/rules"
 
 export PATH="$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"
@@ -184,20 +186,16 @@ echo "*** Create release note..."
  
 gitTagList=$(git -C $CURR_DIR tag --sort=-version:refname)
 gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
-# echo "${gitTagList}"
 
 if [[ 1 -ge "$gitTagListCount" ]]; then
     echo "Use all entries for a release note:"
-     releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %s [%aN] %ad")
+     releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %ad [%aN] %s")
 else
     tmpval=$(echo "${gitTagList}" | awk 'NR==2{print}')
     gitTagRange="${tmpval}..${revision}"
     echo "Release note range [$gitTagRange]"
-    releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %s [%aN] %ad")
+    releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %ad [%aN] %s")
 fi
-
-#sed 's/^/  * /'
-# echo -e "$releaseNote"
 
 echo ""
 echo "***** Prepare distr changelog";
