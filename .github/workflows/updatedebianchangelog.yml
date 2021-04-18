@@ -15,16 +15,31 @@ jobs:
     steps:
     - name: Checkout master      
       uses: actions/checkout@master
+      with:
+          ref: master
+          fetch-depth: 0
     - name: Run info        
       run: |
-           echo "The job was automatically triggered by a ${{ github.event_name }} event."
-           echo "This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-           echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-           echo "The ${{ github.repository }} repository has been cloned to the runner."
-           echo "The workflow is now ready to test your code on the runner."
-           ls ${{ github.workspace }}
-           echo "This job's status is ${{ job.status }}."
+            CURR_DIR=$(pwd)
+            gitTagList=$(git -C $CURR_DIR tag --sort=-version:refname)
+            gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
+            if [[ 1 -ge "$gitTagListCount" ]]; then
+                echo "Use all entries for a release note:"
+                releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %s [%aN] %ad")
+            else
+                tmpval=$(echo "${gitTagList}" | awk 'NR==2{print}')
+                gitTagRange="${tmpval}..${revision}"
+                echo "Release note range [$gitTagRange]"
+                releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %s [%aN] %ad")
+            fi
+            echo ""
+            echo "***** Prepare distr changelog";
+            echo ""
+            echo "logview (${Major}.${Minor}.${buildnum}) unstable; urgency=medium"         > "${CURR_DIR}/debian/changelog"
+            echo ""                                                                        >> "${CURR_DIR}/debian/changelog"
+            echo "$releaseNote"                                                            >> "${CURR_DIR}/debian/changelog"
+            echo ""                                                                        >> "${CURR_DIR}/debian/changelog"
+            echo " -- chipmunk.sm <dannico@linuxmail.org>  $(LANG=C date -R)"              >> "${CURR_DIR}/debian/changelog"
+            cat "${CURR_DIR}/debian/changelog"
+      
 
-       # env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-       #   tag_name: ${{ github.ref }}
-       #   release_name: Release ${{ github.ref }}
