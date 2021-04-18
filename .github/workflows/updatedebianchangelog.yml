@@ -20,6 +20,7 @@ jobs:
         fetch-depth: 0
     - name: Run info        
       run: |
+            echo "github.workspace ${{ github.workspace }}"
             buildnum=0
             CURR_DIR=$(pwd)
             revision="HEAD"
@@ -46,16 +47,14 @@ jobs:
             gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
             if [[ 1 -ge "$gitTagListCount" ]]; then
                 echo "Use all entries for a release note:"
-                releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %s [%aN] %ad")
+                releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %ad [%aN] %s")
             else
                 tmpval=$(echo "${gitTagList}" | awk 'NR==2{print}')
                 gitTagRange="${tmpval}..${revision}"
                 echo "Release note range [$gitTagRange]"
-                releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %s [%aN] %ad")
+                releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %ad [%aN] %s")
             fi
-            echo ""
             echo "***** Prepare distr changelog";
-            echo ""
             echo "logview (${Major}.${Minor}.${buildnum}) unstable; urgency=medium"         > "${CURR_DIR}/debian/changelog"
             echo ""                                                                        >> "${CURR_DIR}/debian/changelog"
             echo "$releaseNote"                                                            >> "${CURR_DIR}/debian/changelog"
