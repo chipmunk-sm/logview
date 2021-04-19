@@ -8,40 +8,41 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-jobs:
-  build:
-    name: update changelog
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout master      
-      uses: actions/checkout@master
-      with:
-        ref: master
-        fetch-depth: 0
-        token: ${{secrets.GITHUB_TOKEN}}
-    - name: Run test build and update debian changelog 
-      run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-              chmod +x build.sh;
-              ./build.sh -b 0 -c gcc -x "linux" -n "Test";
-          elif  [[ "$RUNNER_OS" == "Windows" ]]; then
-              echo "$RUNNER_OS";
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-               echo "$RUNNER_OS";
-          else
-               echo "Error $RUNNER_OS";
-               exit 1;
-          fi
-    - name: Commit debian changelog
-      run: |
-        echo "name: ${{ github.event.pusher.name }}"
-        echo "email: ${{ github.event.pusher.email }}"
-        git config --global user.email "${{ github.event.pusher.email }}"
-        git config --global user.name "${{ github.event.pusher.name }}"
-        git commit -m "Autoupdate changelog" -- ./debian/changelog
-    - name: Push changes to master
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{secrets.GITHUB_TOKEN}}
-        force: true 
+#jobs:
+  #build:
+    #name: update changelog
+    #runs-on: ubuntu-latest
+    #steps:
+    #- name: Checkout master      
+    #  uses: actions/checkout@master
+    #  with:
+    #    ref: master
+    #    fetch-depth: 0
+    #    token: ${{secrets.GITHUB_TOKEN}}
+    #- name: Run test build and update debian changelog 
+    #  run: |
+    #      if [[ "$RUNNER_OS" == "Linux" ]]; then
+    #          chmod +x build.sh;
+    #          ./build.sh -b 0 -c gcc -x "linux" -n "Test";
+    #      elif  [[ "$RUNNER_OS" == "Windows" ]]; then
+    #          echo "$RUNNER_OS";
+    #      elif [[ "$RUNNER_OS" == "macOS" ]]; then
+    #           echo "$RUNNER_OS";
+    #      else
+    #           echo "Error $RUNNER_OS";
+    #           exit 1;
+    #      fi
+    #- name: Commit debian changelog
+    #  run: |
+        #echo "name: ${{ github.event.pusher.name }}"
+        #echo "email: ${{ github.event.pusher.email }}"
+        #git config --global user.email "${{ github.event.pusher.email }}"
+        #git config --global user.name "${{ github.event.pusher.name }}"
+        #git commit -m "Autoupdate changelog" -- ./debian/changelog
+    #- name: Push changes to master
+    #  uses: ad-m/github-push-action@master
+    #  with:
+    #    github_token: ${{secrets.GITHUB_TOKEN}}
+    #    branch: master
+    #    force: true 
 
