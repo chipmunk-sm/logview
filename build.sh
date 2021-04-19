@@ -13,7 +13,7 @@
 #    colorDef='\033[0m'
 #~ colors const
 
-Patch=0
+updaateversiononly=false
 
 while getopts b:c:x:n: flag
 do
@@ -22,34 +22,26 @@ do
         c) compiler=${OPTARG};;
         x) osname=${OPTARG};;
         n) buildname=${OPTARG};;
+        x) buildname=${OPTARG};;
+        u) updaateversiononly=true;;
     esac
 done
 
-if [ -z ${buildnum+x} ]; then
-    echo "Build number is unset";
-    exit 1;
-fi
-
-if [ -z ${compiler+x} ]; then
-    echo "Compiler is unset";
-    exit 1;
-fi
-
-if [ -z ${osname+x} ]; then
-    echo "OS name is unset";
-    exit 1;
-fi
+if [ -z ${buildnum+x}  ]; then buildnum=0; fi
+if [ -z ${compiler+x}  ]; then compiler=gcc; fi
+if [ -z ${osname+x}    ]; then osname=$(uname -s); fi
 
 if [ -z ${buildname+x} ]; then
-    echo "Build name is unset";
-    exit 1;
+    VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
+    VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
+    buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}."
+else
+    buildname="${buildname}."
 fi
-
-CURR_DIR=$(pwd)
 
 osname=${osname,,}
 
-chmod +x "${CURR_DIR}/debian/rules"
+chmod +x "./debian/rules"
 
 export PATH="$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"
 
@@ -57,7 +49,7 @@ echo -e "Build number \t[$buildnum]";
 echo -e "Compiler     \t[$compiler]";
 echo -e "OS name      \t[$osname]";
 echo -e "Build name   \t[$buildname]";
-echo -e "PWD          \t[$CURR_DIR]";
+echo -e "PWD          \t[$(pwd)]";
 echo -e "PATH         \t[$PATH]";
 
 #windows
@@ -66,38 +58,70 @@ if [[ "$osname" == "windows" ]]; then
     exit 1;
 fi
 
-echo ""
 echo "***** Generate version";
-echo "* Parse GIT attributes..."
-echo "* TAG Expected format v000.000-release_descriptor"
 
 revision="HEAD"
-buildName="Auto-build"
 
-FullCommit=$(git -C $CURR_DIR rev-parse $revision)
+FullCommit=$(git rev-parse $revision)
 if [ -z ${FullCommit+x} ]; then
-    echo "Failed on get commit for $revision revision [$FullCommit]";
+    echo "Failed on get commit for revision [$revision] commit [$FullCommit]";
+    echo "* TAG Expected format v000.000-release_description"
     exit 1;
 fi
 
 echo "* FullCommit [$FullCommit]"
 
-LastTag=$(git -C $CURR_DIR describe --tags --first-parent --match "*" $revision)
+LastTag=$(git describe --tags --first-parent --match "*" $revision)
 
 echo "* TAG [$LastTag]"
 
 if [ -z ${LastTag+x} ]; then
   LastTag="0.0.0.$buildnum"
-  echo "Failed on get tag for revision $revision - defaulting to $LastTag"
+  echo "Failed on get tag for revision [$revision] - defaulting to $LastTag"
+  echo "* TAG Expected format v000.000-release_description"
 fi
 
 parsestr="$(echo -e "${LastTag}" | sed -e 's/^[a-zA-Z]*//')"
 Major=`echo "${parsestr}" | awk -F"[./-]" '{print $1}'`
 Minor=`echo "${parsestr}" | awk -F"[./-]" '{print $2}'`
-buildName=`echo "${parsestr}" | awk -F"[./-]" '{print $3}'`
+releaseName=`echo "${parsestr}" | awk -F"[./-]" '{print $3}'`
 
-echo -e "* [$LastTag] => [$Major.$Minor.$Patch.$buildnum]"
-echo -e "* Release Name [$buildName]"
+echo -e "* [$LastTag] => [$Major.$Minor.$buildnum]"
+releaseName="${buildname}${releaseName}"
+echo -e "* Release Name [$releaseName]"
+
+echo "*** Create release note..."
+ 
+gitTagList=$(git tag --sort=-version:refname)
+gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
+
+if [[ 1 -ge "$gitTagListCount" ]]; then
+    echo "Use all entries for a release note:"
+    releaseNote=$(git log --date=short --pretty=format:"  * %ad [%aN] %s")
+else
+    tmpval=$(echo "${gitTagList}" | awk 'NR==2{print}')
+    gitTagRange="${tmpval}..${revision}"
+    echo "Release note range [$gitTagRange]"
+    releaseNote=$(git log "$gitTagRange" --date=short --pretty=format:"  * %ad [%aN] %s")
+fi
+
+echo ""
+echo "***** Create distr changelog...";
+echo -e "logview (${Major}.${Minor}.${buildnum}) unstable; urgency=medium\n$releaseNote\n -- chipmunk.sm <dannico@linuxmail.org>  $(LANG=C date -R)" > "debian/changelog"
+cat "debian/changelog"
+
+echo ""
+echo "***** Create ver.h";
+
+versionFile="\n#define FVER_NAME \"${releaseName}\"\n#define FVER1 ${Major}\n#define FVER2 ${Minor}\n#define FVER3 ${buildnum}\n#define FVER4 0\n"
+echo -e "$versionFile" > "ver.h"
+cat "ver.h"
+
+if [[ "$updaateversiononly" = true ]]; then
+   exit 0;
+fi
+
+# ************************************************************************
 
 echo ""
 echo "***** Test compiler";
@@ -121,7 +145,7 @@ export CXX=${QMAKE_CXX}
 
 # print compiler version
 ${CC} --version
-retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 
 echo "***** Test Qt";
 
@@ -173,48 +197,15 @@ if [[ "$REQUIRES_INSTALL_QT_5" = false ]]; then
 fi
 
 qmake $XQFLAG --version
-retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 
-echo ""
-echo "***** Prepare ver.h";
-
-versionFile="\n#define FVER_NAME \"${buildName}\"\n#define FVER1 $Major\n#define FVER2 $Minor\n#define FVER3 $buildnum\n#define FVER4 0\n"
-echo -e "$versionFile"
-echo -e "$versionFile" > "${CURR_DIR}/ver.h"
-
-echo "*** Create release note..."
- 
-gitTagList=$(git -C $CURR_DIR tag --sort=-version:refname)
-gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
-
-if [[ 1 -ge "$gitTagListCount" ]]; then
-    echo "Use all entries for a release note:"
-     releaseNote=$(git -C $CURR_DIR log --date=short --pretty=format:"  * %ad [%aN] %s")
-else
-    tmpval=$(echo "${gitTagList}" | awk 'NR==2{print}')
-    gitTagRange="${tmpval}..${revision}"
-    echo "Release note range [$gitTagRange]"
-    releaseNote=$(git -C $CURR_DIR log "$gitTagRange" --date=short --pretty=format:"  * %ad [%aN] %s")
-fi
-
-echo ""
-echo "***** Prepare distr changelog";
-echo ""
-
-echo "logview (${Major}.${Minor}.${buildnum}) unstable; urgency=medium"         > "${CURR_DIR}/debian/changelog"
-echo ""                                                                        >> "${CURR_DIR}/debian/changelog"
-echo "$releaseNote"                                                            >> "${CURR_DIR}/debian/changelog"
-echo ""                                                                        >> "${CURR_DIR}/debian/changelog"
-echo " -- chipmunk.sm <dannico@linuxmail.org>  $(LANG=C date -R)"              >> "${CURR_DIR}/debian/changelog"
-
-cat "${CURR_DIR}/debian/changelog"
 
 echo ""
 echo "***** Run $ debuild -- binary";
 echo ""
 
 debuild -- binary
-retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 
 exit 0
 
@@ -222,7 +213,7 @@ exit 0
 # echo "***** Prepare orig.tar.gz";
 # echo ""
 
-# tar czf "${CURR_DIR}/../logview_${Major}.${Minor}.${buildnum}.orig.tar.gz" "${CURR_DIR}"
+# tar czf "./../logview_${Major}.${Minor}.${buildnum}.orig.tar.gz" "$(pwd)"
 
 # archxx=amd64 
 # sudo apt-get install sbuild schroot debootstrap
@@ -233,11 +224,11 @@ exit 0
 # sudo sbuild-createchroot --include=eatmydata,ccache,gnupg unstable /srv/chroot/unstable-${archxx}-sbuild http://127.0.0.1:3142/deb.debian.org/debian
 # 
 # sudo sbuild-update -udcar u
-# sbuild
+# sbuild 
 
 # echo "***** Prepare path";
 # 
-# RELEASE_DIR=${CURR_DIR}/Release/logview_${buildname,,}_${Major}.${Minor}.${buildnum}
+# RELEASE_DIR=$(pwd)/Release/logview_${releaseName,,}_${Major}.${Minor}.${buildnum}
 # echo $RELEASE_DIR;
 # 
 # mkdir -p $RELEASE_DIR
@@ -249,12 +240,12 @@ exit 0
 # echo "***** Run qmake";
 # 
 # qmake $XQFLAG -Wall -spec $QMAKESPEC QMAKE_CC=$QMAKE_CC QMAKE_CXX=$QMAKE_CXX QMAKE_LINK=$QMAKE_CXX ../../*.pro ;
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # echo "***** Run make";
 # 
 # make -j4
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # echo "***** Cleanup ";
 # 
@@ -272,22 +263,22 @@ exit 0
 # echo "***** create deb ";
 # 
 # mkdir -p                               "${RELEASE_DIR}/usr/bin"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # mv "${RELEASE_DIR}/logview"            "${RELEASE_DIR}/usr/bin/"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # mkdir -p                               "${RELEASE_DIR}/usr/share/applications"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
-# cp "${CURR_DIR}/data/logview.desktop"  "${RELEASE_DIR}/usr/share/applications/"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+# cp "data/logview.desktop"  "${RELEASE_DIR}/usr/share/applications/"
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # mkdir -p                               "${RELEASE_DIR}/usr/share/icons/hicolor/scalable/apps"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
-# cp "${CURR_DIR}/data/logview_logo.svg" "${RELEASE_DIR}/usr/share/icons/hicolor/scalable/apps/"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+# cp "data/logview_logo.svg" "${RELEASE_DIR}/usr/share/icons/hicolor/scalable/apps/"
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
-# cp -R "${CURR_DIR}/debian/" "${RELEASE_DIR}/DEBIAN/"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# cp -R "debian/" "${RELEASE_DIR}/DEBIAN/"
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # chmod +x "${RELEASE_DIR}/DEBIAN/rules"
 # 
@@ -312,10 +303,10 @@ exit 0
 # cat "${RELEASE_DIR}/DEBIAN/control"
 # 
 # dpkg-deb --build --root-owner-group "${RELEASE_DIR}"
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # md5sum ${RELEASE_DIR}.deb
-# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "${colorRED}Error [$retval]${colorDef}"; exit 1; fi
+# retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 # 
 # exit 0
 

@@ -5,7 +5,7 @@ export QT_SELECT=5
 
 # Main dh rule
 %:
-	@echo " ****************** start $@"
 	dh $@
+	@echo " ****************** start $@"
 
 
