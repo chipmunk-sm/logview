@@ -6,46 +6,55 @@ language: cpp
     #- /var/cache/apt/
     #- /var/cache/pbuilder/aptcache/
 
-jobs:
-  include:
+#jobs:
+  #include:
     #unsupported - name: "Xenial 16.04 amd64 Qt version 5.5.1"
     #      dist: xenial
     #      os: linux
 
-    - name: "Bionic.18.04.amd64.gcc"
-      dist: bionic
-      os: linux
-      compiler: gcc
+    #- name: "Bionic.18.04.amd64.gcc"
+      #dist: bionic
+      #os: linux
+      #compiler: gcc
+      #env: BUILDSYSTEM=-d
  
-    - name: "Focal.20.04.amd64.gcc"
-      dist: focal
-      os: linux
-      compiler: gcc
+    #- name: "Focal.20.04.amd64.gcc"
+      #dist: focal
+      #os: linux
+      #compiler: gcc
+      #env: BUILDSYSTEM=-d
 
-    - name: "Focal.20.04.amd64.clang"
-      dist: focal
-      os: linux
-      compiler: clang
+    #- name: "Focal.20.04.amd64.clang"
+      #dist: focal
+      #os: linux
+      #compiler: clang
+      #env: BUILDSYSTEM=-d
       
-before_install:
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        sudo apt-get -y install qt5-qmake qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
-      fi
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        brew update ;
-        brew install qt5 ;
-        export PATH=$(brew --prefix)/opt/qt5/bin:$PATH ;
-        echo $PATH;
-      fi
-    - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-        echo $PATH;
-      fi
-      
-script:
-- if [[ "$osname" == "windows" ]]; then
-     echo "windows is unsupported";
-     exit 1;
-  else
-    chmod +x build.sh;
-    ./build.sh -b $TRAVIS_BUILD_NUMBER -c $TRAVIS_COMPILER -x $TRAVIS_OS_NAME -n $TRAVIS_JOB_NAME;
-  fi
+    #- name: "Android"
+      #dist: focal
+      #os: linux
+      #compiler: clang
+      #env: BUILDSYSTEM=-a
+
+#before_install:
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        #sudo apt-get -y install qt5-qmake qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
+      #fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        #brew update ;
+        #brew install qt5 ;
+        #export PATH=$(brew --prefix)/opt/qt5/bin:$PATH ;
+        #echo $PATH;
+      #fi
+    #- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+        #echo $PATH;
+      #fi
+
+#script:
+#- if [[ "$osname" == "windows" ]]; then
+     #echo "windows is unsupported";
+     #exit 1;
+  #else
+    #chmod +x build.sh;
+    #./build.sh -b $TRAVIS_BUILD_NUMBER -c $TRAVIS_COMPILER -o $TRAVIS_OS_NAME -n $TRAVIS_JOB_NAME $BUILDSYSTEM;
+  #fi

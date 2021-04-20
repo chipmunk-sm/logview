@@ -1,31 +1,50 @@
- 
+
 version: 0.0.{build}
 
 environment:
   matrix:
-  
-  - QTDIR: C:\Qt\5.15.2\msvc2019_64
+
+  - job_name: "Win10.x64"
+    QTDIR: C:\Qt\5.15.2\msvc2019_64
     BUILD_PLATFORMID: "x64"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     WINVER: Win10
-    
-  - QTDIR: C:\Qt\5.15.2\msvc2019
+
+  - job_name: "Win10.x86"
+    QTDIR: C:\Qt\5.15.2\msvc2019
     BUILD_PLATFORMID: "x86"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     WINVER: Win10
-    
-  - QTDIR: C:\Qt\5.13.2\msvc2015_64
+
+  - job_name: "Win8.x64"
+    QTDIR: C:\Qt\5.13.2\msvc2015_64
     BUILD_PLATFORMID: "x64"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
     WINVER: Win8
+    
+    #Ubuntu or Ubuntu1804 - Ubuntu 18.04 (Bionic Beaver)
+    #Ubuntu1604 - Ubuntu 16.04 (Xenial Xerus)
+    #Ubuntu2004 - Ubuntu 20.04 (Focal Fossa)
+    
+  - job_name: "ubuntu2004"
+    APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
+    #APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCipGa5kfhMsi6vdKEUOpqfbyoRFFafGJaWFeYXCCZ5SfbvBgE9iWSYXVVtNxWkSkB/HNzPRjsXF7w9UVrfXHHtGo2qk+qypM+WvkTAaU6F5pNIrIkjAUd1T3oX+LFBLqZ8AQoym/8s5J2mhddct8VVjT4jjpzN3WSfU+3t08qSIYb/8BRzJiqWd+0Po+82+tlj3vVxSq7h9mjvT7ioTmSbEYxcjqKoY/j058REmvZH/4iH9Zq+tfJK4EazQRbO+BUn+4A2/QkEz5c/gdBuY4u59TeIAVndq0YUuuY2DTgLAsA1BnGMCq1J04XabhJDZ8ApfUFIay1EqTWMAGg3ZeYV
 
+#install:
+  #- sh: sudo apt-get update
+  #- sh: sudo apt-get install -y qtbase5-dev qttools5-dev-tools
+  #- sh: sudo apt-get install -y git-build-recipe dh-make git-buildpackage    
+  
 build_script:
-  - build.cmd
+  - cmd: '%APPVEYOR_BUILD_FOLDER%\build.cmd'
+  - sh: chmod +x ./build.sh; ./build.sh -a
 
 artifacts:
   - path: '*.zip'
     name: 'logview.%BUILD_PLATFORMID%.%APPVEYOR_BUILD_VERSION%'
-
+  - path: '*.deb'
+    name: 'logview.%BUILD_PLATFORMID%.%APPVEYOR_BUILD_VERSION%'
+    
 deploy:
 - provider: GitHub
   description: 'New release of logview'
