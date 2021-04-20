@@ -6,6 +6,6 @@ export QT_SELECT=5
 # Main dh rule
 %:
 	dh $@
-	@echo " ****************** start $@"
+	@echo " ******* rules [$@]"
 
 
