@@ -118,8 +118,8 @@ versionFile="\n#define FVER_NAME \"${releaseName}\"\n#define FVER1 ${Major}\n#de
 echo -e "$versionFile" > "ver.h"
 cat "ver.h";
 
-appveyor UpdateBuild -version "$Major.$Minor.$buildnum"
 echo "***** Update build version";
+appveyor UpdateBuild -version "$Major.$Minor.$buildnum"
 
 if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuild" == false ]]; then
     echo "";
