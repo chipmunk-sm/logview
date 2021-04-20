@@ -43,7 +43,7 @@ environment:
   
 build_script:
   - cmd: build.cmd
-  - sh: ./build.sh ${BUILD_FLAG} -n ${APPVEYOR_BUILD_NUMBER}
+  - sh: ./build.sh ${BUILD_FLAG} -b ${APPVEYOR_BUILD_NUMBER}
  
 artifacts:
   - path: '*.zip'
