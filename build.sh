@@ -22,9 +22,9 @@ do
         b) buildnum=${OPTARG};;
         c) compiler=${OPTARG};;
         o) osname=${OPTARG};;
-        d) debbuild=true;;
-        a) androidbuild=true;;
-        e) extdbuild=true;;
+        d) debbuild=${OPTARG};;
+        a) androidbuild=${OPTARG};;
+        e) extdbuild=${OPTARG};;
         n) buildname=${OPTARG};;
     esac
 done
@@ -214,6 +214,9 @@ SRC_DIR=$(pwd)
 if [[ "$debbuild" == true ]]; then
     echo "";
     echo "***** Run $ debuild -- binary";
+    
+    sudo apt-get -y install --no-install-recommends devscripts fakeroot debhelper;
+
     echo "";
     debuild -- binary
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
