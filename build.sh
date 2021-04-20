@@ -52,6 +52,7 @@ echo -e "Compiler     \t[$compiler]";
 echo -e "OS name      \t[$osname]";
 echo -e "Build name   \t[$buildname]";
 echo -e "PATH         \t[$PATH]";
+echo -e "PWD          \t[$(pwd)]";
 
 #windows
 if [[ "$osname" == "windows" ]]; then
@@ -124,6 +125,7 @@ if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuil
     exit 0;
 fi
 
+
 # ************************************************************************
 export PATH="$HOME/Qt/5.15/gcc_64/bin/:$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"
 
@@ -143,8 +145,6 @@ else
     echo "Compiler is not set or unsupported [$compiler]";
     exit 1;
 fi
-
-echo -e "PWD \t[$(pwd)]";
 
 export CC=${QMAKE_CC}
 export CXX=${QMAKE_CXX}
