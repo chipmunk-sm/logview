@@ -88,7 +88,6 @@ Minor=`echo "${parsestr}" | awk -F"[./-]" '{print $2}'`
 releaseName=`echo "${parsestr}" | awk -F"[./-]" '{print $3}'`
 
 echo -e "* [$LastTag] => [$Major.$Minor.$buildnum]";
-releaseName="${buildname}.${releaseName}";
 echo -e "* Release Name [$releaseName]";
 
 echo "*** Create release note...";
@@ -205,6 +204,8 @@ fi
 
 qmake $XQFLAG --version
 retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+  
+SRC_DIR=$(pwd)
 
 # ************** build with debuild ****************
 if [[ "$debbuild" == true ]]; then
@@ -217,15 +218,17 @@ if [[ "$debbuild" == true ]]; then
     echo "***** End $ debuild -- binary";
     echo "";
 fi
-
+    
 # ************** build custom ****************
 if [[ "$extdbuild" == true ]]; then
 
-     echo "";
-     echo "***** Run $ custom build";
-     echo "** Prepare path";
-    SRC_DIR=$(pwd)
-    RELEASE_DIR=$(pwd)/Release/logview_${releaseName,,}_${Major}.${Minor}.${buildnum}
+    echo "";
+    echo "***** Run $ custom build";
+     
+    echo "** Prepare path";
+    tmpName="${buildname}.${releaseName}"
+
+    RELEASE_DIR=$(pwd)/Release/logview_${tmpName,,}_${Major}.${Minor}.${buildnum}
     echo $RELEASE_DIR;
 
     rm -rf "${RELEASE_DIR}"
@@ -316,8 +319,8 @@ if [[ "$androidbuild" == true ]]; then
     echo "***** Run $ android build";
     
     echo "** Prepare path";
-    SRC_DIR=$(pwd)
-    RELEASE_DIR=$(pwd)/Release/logview_${releaseName,,}_${Major}.${Minor}.${buildnum}
+    tmpName="${releaseName}.android"
+    RELEASE_DIR=$(pwd)/Release/logview_${tmpName,,}.${Major}.${Minor}.${buildnum}
     echo $RELEASE_DIR;
 
     rm -rf "${RELEASE_DIR}"

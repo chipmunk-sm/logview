@@ -38,7 +38,7 @@ environment:
 build_script:
   - cmd: '%APPVEYOR_BUILD_FOLDER%\build.cmd'
   - sh: 'chmod +x ./build.sh' 
-  - sh: './build.sh -a'
+  - sh: './build.sh -a -n ${APPVEYOR_JOB_NAME}'
  
 artifacts:
   - path: '*.zip'
