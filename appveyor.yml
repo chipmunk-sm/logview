@@ -28,11 +28,11 @@ environment:
     
   - job_name: "ubuntu2004"
     APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
-    BUILD_FLAG:-d
+    BUILD_FLAG: -d
     
   - job_name: "android"
     APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
-    BUILD_FLAG:-a
+    BUILD_FLAG: -a
     
     #APPVEYOR_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCipGa5kfhMsi6vdKEUOpqfbyoRFFafGJaWFeYXCCZ5SfbvBgE9iWSYXVVtNxWkSkB/HNzPRjsXF7w9UVrfXHHtGo2qk+qypM+WvkTAaU6F5pNIrIkjAUd1T3oX+LFBLqZ8AQoym/8s5J2mhddct8VVjT4jjpzN3WSfU+3t08qSIYb/8BRzJiqWd+0Po+82+tlj3vVxSq7h9mjvT7ioTmSbEYxcjqKoY/j058REmvZH/4iH9Zq+tfJK4EazQRbO+BUn+4A2/QkEz5c/gdBuY4u59TeIAVndq0YUuuY2DTgLAsA1BnGMCq1J04XabhJDZ8ApfUFIay1EqTWMAGg3ZeYV
 
