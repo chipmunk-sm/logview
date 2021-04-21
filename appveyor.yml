@@ -48,7 +48,7 @@ build_script:
 artifacts:
   - path: '*.zip'
     name: 'logview.%BUILD_PLATFORMID%.%APPVEYOR_BUILD_VERSION%'
-  - path: '../*.deb'
+  - path: '*.deb'
     name: 'logview.%BUILD_PLATFORMID%.%APPVEYOR_BUILD_VERSION%'
     
 deploy:
