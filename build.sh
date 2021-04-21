@@ -214,7 +214,7 @@ SRC_DIR=$(pwd)
 if [[ "$debbuild" == true ]]; then
     echo "";
     echo "***** Run $ debuild -- binary";
-#     sudo apt-get update;
+    sudo apt-get update;
     sudo apt-get -y install --no-install-recommends qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
 
     echo "";
