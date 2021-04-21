@@ -130,31 +130,7 @@ fi
 
 
 # ************************************************************************
-export PATH="$HOME/Qt/5.15/gcc_64/bin/:$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"
-
-echo ""
-echo "***** Test compiler";
-
-if [[ $compiler == clang* ]]; then
-    QMAKE_CXX=clang++
-    QMAKE_CC=clang
-    QMAKESPEC=linux-clang
-elif [[ $compiler == gcc* ]]; then
-    QMAKE_CXX=g++
-    QMAKE_CC=gcc
-    QMAKESPEC=linux-g++
-    # gcc -v --help 2> /dev/null | grep -iv deprecated | grep "C++" | sed -n '/^ *-std=\([^<][^ ]\+\).*/ {s//\1/p}';
-else
-    echo "Compiler is not set or unsupported [$compiler]";
-    exit 1;
-fi
-
-export CC=${QMAKE_CC}
-export CXX=${QMAKE_CXX}
-
-# print compiler version
-${CC} --version
-retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+PATH="$HOME/Qt/5.15/gcc_64/bin/:$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"; export $PATH
 
 echo "***** Test Qt";
 
@@ -205,7 +181,34 @@ if [[ "$REQUIRES_INSTALL_QT_5" = false ]]; then
     fi
 fi
 
+QTDIR=$(command -v qmake)
+echo "qmake path [${QTDIR}]"
+
 qmake $XQFLAG --version
+retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+
+echo ""
+echo "***** Test compiler";
+
+if [[ $compiler == clang* ]]; then
+    QMAKE_CXX=clang++
+    QMAKE_CC=clang
+    QMAKESPEC=linux-clang
+elif [[ $compiler == gcc* ]]; then
+    QMAKE_CXX=g++
+    QMAKE_CC=gcc
+    QMAKESPEC=linux-g++
+    # gcc -v --help 2> /dev/null | grep -iv deprecated | grep "C++" | sed -n '/^ *-std=\([^<][^ ]\+\).*/ {s//\1/p}';
+else
+    echo "Compiler is not set or unsupported [$compiler]";
+    exit 1;
+fi
+
+export CC=${QMAKE_CC}
+export CXX=${QMAKE_CXX}
+
+# print compiler version
+${CC} --version
 retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
   
 SRC_DIR=$(pwd)
@@ -220,6 +223,12 @@ if [[ "$debbuild" == true ]]; then
     echo "";
     debuild -- binary
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+    
+    mv "${SRC_DIR}/../*.deb" "${SRC_DIR}/"
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+    mv "${SRC_DIR}/../*.ddeb" "${SRC_DIR}/"
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+
     echo "";
     echo "***** End $ debuild -- binary";
     echo "";
@@ -317,7 +326,7 @@ if [[ "$extdbuild" == true ]]; then
     
      echo "";
      echo "***** End $ custom build";
-
+     cd ${SRC_DIR}
 fi;
 
 if [[ "$androidbuild" == true ]]; then
