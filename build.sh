@@ -200,10 +200,23 @@ if [[ "$debbuild" == true ]]; then
     if [[ "$VERSION_ID" == "16.04" ]]; then debuild binary ; else debuild -- binary ; fi
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
     
-    mv "${SRC_DIR}/../*.deb" "${SRC_DIR}/"
-    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-    mv "${SRC_DIR}/../*.ddeb" "${SRC_DIR}/"
-    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+#     mv "${SRC_DIR}/../*.deb" "${SRC_DIR}/"
+#     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+#     mv "${SRC_DIR}/../*.ddeb" "${SRC_DIR}/"
+#     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+    
+    mkdir -p $SRC_DIR/Artifacts_deb
+
+    mv $SRC_DIR/../*.deb $SRC_DIR/Artifacts_deb/ 2>/dev/null || true
+    mv $SRC_DIR/../*.ddeb $SRC_DIR/Artifacts_deb/ 2>/dev/null || true
+
+    pushd $PWD
+
+    cd $SRC_DIR/Artifacts_deb
+    
+    for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
+
+    popd
 
     echo "";
     echo "***** End $ debuild -- binary";
@@ -335,17 +348,6 @@ if [[ "$androidbuild" == true ]]; then
     echo "***** End $ android build";
 fi;
 
-mkdir -p $APPVEYOR_BUILD_FOLDER/Artifacts_deb
-
-mv $APPVEYOR_BUILD_FOLDER/../*.deb $APPVEYOR_BUILD_FOLDER/Artifacts_deb/
-mv $APPVEYOR_BUILD_FOLDER/../*.ddeb $APPVEYOR_BUILD_FOLDER/Artifacts_deb/ 2>/dev/null || true
-
-pushd $PWD
-
-cd $APPVEYOR_BUILD_FOLDER/Artifacts_deb
-for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
-
-popd
 
 # 
 # exit 0
