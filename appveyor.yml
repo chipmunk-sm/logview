@@ -6,19 +6,16 @@ environment:
 
   - job_name: "Win10.x64"
     QTDIR: C:\Qt\5.15.2\msvc2019_64
-    BUILD_PLATFORMID: "x64"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     WINVER: Win10
 
   - job_name: "Win10.x86"
     QTDIR: C:\Qt\5.15.2\msvc2019
-    BUILD_PLATFORMID: "x86"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     WINVER: Win10
 
   - job_name: "Win8.x64"
     QTDIR: C:\Qt\5.13.2\msvc2015_64
-    BUILD_PLATFORMID: "x64"
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
     WINVER: Win8
 
