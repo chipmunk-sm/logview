@@ -120,6 +120,8 @@ else
 Write-Host ""
 Write-Host "*** Start update ver.h..."
 
+$releasenote=$(Get-Content -Path "$releaseNoteFile")
+
 $verContents = @"
 
 #define FVER_NAME "$buildName"
@@ -129,7 +131,7 @@ $verContents = @"
 #define FVER4 0
 #define FBRANCH "$appBranch"
 #define FDISTR "$distrver"
-#define RELEASENOTE "$(Get-Content -Path "$releaseNoteFile)"
+#define RELEASENOTE "$releasenote"
 
 "@
 
