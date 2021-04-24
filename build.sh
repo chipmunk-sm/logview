@@ -2,9 +2,9 @@
 
 # ./build.sh -b $TRAVIS_BUILD_NUMBER -c $TRAVIS_COMPILER -o $TRAVIS_OS_NAME -n $TRAVIS_JOB_NAME
 
-# ./build.sh  -c gcc   -d -o linux -n "Focal.20.04.GCC"   -b 15
-# ./build.sh           -a -o linux -n "Android"           -b 16
-# ./build.sh  -c clang -e -o linux -n "Focal.20.04.clang" -b 17
+# ./build.sh  -c gcc   -d true -o linux -n "Focal.20.04.GCC"   -b 15
+# ./build.sh           -a true -o linux -n "Android"           -b 16
+# ./build.sh  -c clang -e true -o linux -n "Focal.20.04.clang" -b 17
 
 # tar zxf .
 
@@ -15,6 +15,9 @@
 #    colorDef='\033[0m'
 #~ colors const
 
+buildnum=$APPVEYOR_BUILD_NUMBER
+VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
+VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 
 while getopts b:c:o:d:a:e:n: flag
 do
@@ -29,19 +32,13 @@ do
     esac
 done
 
-if [ -z ${buildnum+x} ]; then buildnum=0; fi
-if [ -z ${compiler+x} ]; then compiler=gcc; fi
-if [ -z ${osname+x} ]; then osname=$(uname -s); fi
-if [ -z ${debbuild+x} ]; then debbuild=false; fi
+if [ -z ${buildnum+x} ];     then buildnum=0; fi
+if [ -z ${compiler+x} ];     then compiler=gcc; fi
+if [ -z ${osname+x} ];       then osname=$(uname -s); fi
+if [ -z ${debbuild+x} ];     then debbuild=false; fi
 if [ -z ${androidbuild+x} ]; then androidbuild=false; fi
-if [ -z ${extdbuild+x} ]; then extdbuild=false; fi
-if [ -z ${buildname+x} ]; then
-    VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
-    VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
-    buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"
-else
-    buildname="${buildname}"
-fi
+if [ -z ${extdbuild+x} ];    then extdbuild=false; fi
+if [ -z ${buildname+x} ];    then buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"; fi
 
 osname=${osname,,}
 
@@ -61,42 +58,19 @@ if [[ "$osname" == "windows" ]]; then
 fi
 
 echo "***** Generate version";
-
-revision="HEAD"
-
-FullCommit=$(git rev-parse $revision)
-if [ -z ${FullCommit+x} ]; then
-    echo "Failed on get commit for revision [$revision] commit [$FullCommit]";
-    echo "* TAG Expected format v000.000-release_description"
-    exit 1;
-fi
-
-echo "* FullCommit [$FullCommit]";
-
-LastTag=$(git describe --tags --first-parent --match "*" $revision)
-
-echo "* TAG [$LastTag]";
-
-if [ -z ${LastTag+x} ]; then
-  LastTag="0.0.0.$buildnum";
-  echo "Failed on get tag for revision [$revision] - defaulting to $LastTag";
-  echo "* TAG Expected format v000.000-release_description";
-fi
+LastTag=$(git describe --tags --first-parent --match "*" "HEAD")
+if [ -z ${LastTag+x} ]; then LastTag="0.0-NotSet"; fi
 
 parsestr="$(echo -e "${LastTag}" | sed -e 's/^[a-zA-Z]*//')"
 Major=`echo "${parsestr}" | awk -F"[./-]" '{print $1}'`
 Minor=`echo "${parsestr}" | awk -F"[./-]" '{print $2}'`
 releaseName=`echo "${parsestr}" | awk -F"[./-]" '{print $3}'`
-
-echo -e "* [$LastTag] => [$Major.$Minor.$buildnum]";
-echo -e "* Release Name [$releaseName]";
+echo -e "* [$LastTag] => [$Major.$Minor.$buildnum-$releaseName]";
 
 echo "*** Create release note...";
- 
 gitTagList=$(git tag --sort=-version:refname)
-gitTagListCount=$(echo -n "$gitTagList" | grep -c '^')
 
-if [[ 1 -ge "$gitTagListCount" ]]; then
+if [[ 1 -ge "$(echo -n "$gitTagList" | grep -c '^')" ]]; then
     echo "Use all entries for a release note:";
     releaseNote=$(git log --date=short --pretty=format:"  * %ad [%aN] %s")
 else
@@ -130,7 +104,8 @@ fi
 
 
 # ************************************************************************
-PATH="$HOME/Qt/5.15/gcc_64/bin/:$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"; export $PATH
+PATH="$HOME/Qt/5.15/gcc_64/bin/:$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"
+export PATH
 
 echo "***** Test Qt";
 
@@ -159,8 +134,9 @@ if [[ "$REQUIRES_INSTALL_QT_5" = true ]]; then
     # Qt 5 missing or wrong version...
     #linux
     if [[ "$osname" == "linux" ]]; then
-        sudo apt-get -y install --no-install-recommends qt5-qmake qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
-#         sudo apt-get -y install sbuild schroot debootstrap
+        sudo apt-get install -y --no-install-recommends qt5-qmake qtbase5-dev qttools5-dev-tools;
+#         sudo apt-get -y install sbuild schroot debootstrap 
+#         sudo apt-get -y devscripts fakeroot debhelper
     fi
     #osx
     if [[ "$osname" == "osx" ]]; then
@@ -217,11 +193,11 @@ SRC_DIR=$(pwd)
 if [[ "$debbuild" == true ]]; then
     echo "";
     echo "***** Run $ debuild -- binary";
-    sudo apt-get update;
-    sudo apt-get -y install --no-install-recommends qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
+#     sudo apt-get update;
+#     sudo apt-get -y install --no-install-recommends qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
 
     echo "";
-    debuild -- binary
+    if [[ "$VERSION_ID" == "16.04" ]]; then debuild binary ; else debuild -- binary ; fi
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
     
     mv "${SRC_DIR}/../*.deb" "${SRC_DIR}/"
@@ -358,6 +334,18 @@ if [[ "$androidbuild" == true ]]; then
     echo "";
     echo "***** End $ android build";
 fi;
+
+mkdir -p $APPVEYOR_BUILD_FOLDER/Artifacts_deb
+
+mv $APPVEYOR_BUILD_FOLDER/../*.deb $APPVEYOR_BUILD_FOLDER/Artifacts_deb/
+mv $APPVEYOR_BUILD_FOLDER/../*.ddeb $APPVEYOR_BUILD_FOLDER/Artifacts_deb/ 2>/dev/null || true
+
+pushd $PWD
+
+cd $APPVEYOR_BUILD_FOLDER/Artifacts_deb
+for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
+
+popd
 
 # 
 # exit 0

@@ -10,151 +10,145 @@ echo "*** Start 'create version info' ***"
 echo "******************************************************"
 echo ""
 
+$Build = $env:APPVEYOR_BUILD_NUMBER
+$distrver = $env:APPVEYOR_JOB_NAME
+$appBranch= $env:APPVEYOR_REPO_BRANCH
+#$appBranch= '"{0}"' -f $env:APPVEYOR_REPO_BRANCH
+$buildFolder = $env:APPVEYOR_BUILD_FOLDER
+$sourceDir = $env:APPVEYOR_BUILD_FOLDER
+
+if(!$platformId)
+{
+    $platformId = $env:BUILD_PLATFORMID
+}
+
 if(!$platformId)
 {
     Throw "platformId not set. Abort"
 }
 
-echo "`$platformId: $platformId"
-
-
-$directory = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($PSScriptRoot)
-echo "`$directory: $directory"
-
-echo ""
-echo "***"
-echo "*** Parse GIT attributes..."
-echo "***"
-echo ""
-
-$revision = "HEAD" 
-$buildName = "Custom build"
-$Build=0
-
-if($env:appveyor_build_number)
+if (!$Build)
 {
-    $Build = $env:appveyor_build_number
-    $buildName = "Auto-build"
+    $Build = 0
 }
-else
+
+if (!$distrver)
 {
-    $versionFile = $(Join-Path $directory "ver.h")
-    echo "`$versionFile: $versionFile"
-    $fileContent = Get-Content -Path "$versionFile" -Raw -Encoding UTF8
-    if($fileContent)
+    $distrver = (get-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName 2>$null
+    if (!$distrver)
     {
-        $searchTempl = "#define VER_BUILD "
-        $posStart = $fileContent.IndexOf($searchTempl) 
-        if(-1 -ne $posStart)
-        {
-            $posStart += $searchTempl.Length
-            $posEnd = $fileContent.IndexOf("`n", $posStart) 
-            if(-1 -eq $posEnd)
-            {
-                $posEnd = $fileContent.IndexOf("`r", $posStart) 
-            }
-            if(-1 -ne $posEnd)
-            {
-                $posEnd -= 1
-                $newBuildNum = $fileContent.Substring($posStart, $posEnd - $posStart)
-                $Build = 1 + $newBuildNum
-                echo ""
-                echo "***"
-                echo "*** New Build Num = $Build"
-                echo "***"
-                echo ""
-            }
-        }
+        $distribution = Invoke-Expression "lsb_release -cs"
+        $version = Invoke-Expression "lsb_release -rs"
+        $distrver = "$distribution.$version"
     }
 }
 
-$FullCommit = git -C $directory rev-parse $revision 2>$null
-if (!$FullCommit) {
-	Throw "Failed on get commit for $revision revision"
+if (!$appBranch)
+{
+    $appBranch = $(git rev-parse --abbrev-ref HEAD)
 }
 
-$LastTag = git -C $directory describe --tags --first-parent --match "*" $revision 2>$null
+# $curDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($PSScriptRoot)
+$curDir = Get-Location
 
+if (!$buildFolder)
+{
+    $buildFolder = $curDir
+}
 
+if (!$sourceDir)
+{
+    $sourceDir = $curDir
+}
+
+Write-Host "-Build [$Build]`n"
+Write-Host "-distrver [$distrver]`n"
+Write-Host "-appBranch [$appBranch]`n"
+Write-Host "-buildFolder [$buildFolder]`n"
+Write-Host "-sourceDir [$sourceDir]`n"
+Write-Host "-platformId [$platformId]`n"
+
+Write-Host ""
+Write-Host "*** Parse GIT attributes..."
+Write-Host ""
+
+$revision = "HEAD" 
+$Build=0
+
+$Build = $env:appveyor_build_number
+if($Build)
+{
+    $Build = 0
+}
+
+$LastTag = git -C $sourceDir describe --tags --first-parent --match "*" $revision 2>$null
 if (!$LastTag) 
 {
-	$LastTag = "0.0-test_release"
+	$LastTag = "0.0-test_build"
 	Write-Host "Failed on get tag for revision $revision - defaulting to $LastTag"
 }
 
-$delim = ".",";","-"
+$delim = ".",";","-","_"
 $srrayStr = @($LastTag -Split {$delim -contains $_})
 $Major = $srrayStr[0] -replace '\D+(\d+)','$1'
 $Minor = $srrayStr[1]
 $buildName = $srrayStr[2]
 
-echo "TAG [$LastTag]"
-echo "Message: [$buildName]" 
-echo "[$LastTag] => [$Major.$Minor.$Build]"
-
-$ShortCommit = $FullCommit.SubString(0, 7)
+echo "[$LastTag] => [$Major.$Minor.$Build.$buildName]"
+if (Get-Command Update-AppveyorBuild -errorAction SilentlyContinue)
+{
+    Update-AppveyorBuild -Version "$Major.$Minor.$Build.$appBranch"
+    $env:APPVEYOR_BUILD_VERSION="$Major.$Minor.$Build.$appBranch"
+}
 
 echo ""
-echo "***"
 echo "*** Create release note..."
-echo "***"
-echo ""
-
-$releaseNoteFile = (Join-Path $directory releaseNote.txt)
-
-$gitTagList = git -C $directory tag --sort=-version:refname
+$releaseNoteFile = (Join-Path $buildFolder releaseNote.txt)
+$gitTagList = git -C $sourceDir tag --sort=-version:refname
 if(1 -ge $gitTagList.Count)
 {
-    echo "Use all entries for a release note:"
-    git -C $directory log --pretty=format:"%d %s %N" | Out-File -FilePath "$releaseNoteFile"
+    Write-Host "Use all entries for a release note:"
+    git -C $sourceDir log  --date=short --pretty=format:"  * %ad [%aN] %s" | Out-File -FilePath "$releaseNoteFile"
 }
 else
 {
     $gitTagRange = $gitTagList[1] + "..$revision"
-    echo "Release note range [$gitTagRange]"
-    git -C $directory log "$gitTagRange" --pretty=format:"%d %s %N" | Out-File -FilePath "$releaseNoteFile"
+    Write-Host "Release note range [$gitTagRange]"
+    git -C $sourceDir log "$gitTagRange" --date=short --pretty=format:"  * %ad [%aN] %s" | Out-File -FilePath "$releaseNoteFile"
 }
 
-echo ""
-Get-Content -Path "$releaseNoteFile"
+Write-Host ""
+Write-Host "*** Start update ver.h..."
 
-echo ""
-echo "***"
-echo "*** Start update ver.h..."
-echo "***"
-echo ""
-
-$output = "ver.h"
-
-$new_output_contents = @"
+$verContents = @"
 
 #define FVER_NAME "$buildName"
 #define FVER1 $Major
 #define FVER2 $Minor
 #define FVER3 $Build
 #define FVER4 0
+#define FBRANCH "$appBranch"
+#define FDISTR "$distrver"
+#define RELEASENOTE "$(Get-Content -Path "$releaseNoteFile)"
 
 "@
 
-$current_output_contents = Get-Content (Join-Path $directory $output) -Raw -Encoding Ascii -ErrorAction Ignore
-if ([string]::Compare($new_output_contents, $current_output_contents, $False) -ne 0) {
-	Write-Host "Updating $(Join-Path $directory $output)"
-	[System.IO.File]::WriteAllText((Join-Path $directory $output), $new_output_contents)
-}
+$verFile = $(Join-Path $sourceDir ver.h)
+Write-Host "Update [$verFile]"
+[System.IO.File]::WriteAllText($verFile, $verContents)
 
-echo ""
-echo "***"
-echo "*** Start update include.wxi..."
-echo "***"
-echo ""
+Write-Host ""
+Write-Host "*** Start update include.wxi..."
+Write-Host ""
 
 # Upgrade code HAS to be the same for all updates!!!
-$UpgradeCode = "ED1DA208-1973-445F-BADD-80B2E7CFE22A"
+# logview reserved  ED1DA208-1973-445F-BADD-81B2E7CFE22B
+$UpgradeCode = "ED1DA208-1973-445F-BADD-81B2E7CFE22B"
 $ProductCode = [guid]::NewGuid().ToString().ToUpper()
 $PackageCode = [guid]::NewGuid().ToString().ToUpper()
 
-$directoryInstaller = $(Join-Path $directory "\Installer\")
-echo "`$directoryInstaller: $directoryInstaller"
+$directoryInstaller = $(Join-Path $sourceDir "\Installer\")
+Write-Host "`$directoryInstaller: $directoryInstaller"
 
 $outputIncludeFile = $(Join-Path $directoryInstaller "include.wxi")
 If (Test-Path $outputIncludeFile)
@@ -186,31 +180,11 @@ $new_output_contents_wxi_include = @"
 </Include>
 "@
 
-echo "Update $outputIncludeFile"
+Write-Host "Update [$outputIncludeFile]"
 [System.IO.File]::WriteAllText( $outputIncludeFile, $new_output_contents_wxi_include, (New-Object System.Text.UTF8Encoding $True))
 
-
-echo ""
-echo "***"
-echo "*** Start update Appveyor Build Version..."
-echo "***"
-echo ""
-
-if (Get-Command Update-AppveyorBuild -errorAction SilentlyContinue)
-{
-    Update-AppveyorBuild -Version "$Major.$Minor.$Build"
-}
-
-$env:APPVEYOR_BUILD_VERSION="$Major.$Minor.$Build"
-
-$tmpVer = $(Join-Path $directory "tmpver.txt")
-
-[System.IO.File]::WriteAllText($tmpVer, "$Major.$Minor.$Build", [Text.Encoding]::ASCII)
-  
-echo "Write version $Major.$Minor.$Build to $tmpVer"
-
-echo ""
-echo "******************************************************"
-echo "***  End 'create version info' "
-echo "******************************************************"
+Write-Host ""
+Write-Host "******************************************************"
+Write-Host "***  End 'create version info' "
+Write-Host "******************************************************"
 
