@@ -92,7 +92,7 @@ if (Get-Command Update-AppveyorBuild -errorAction SilentlyContinue)
 {
     Update-AppveyorBuild -Version "$Major.$Minor.$Build.$appBranch"
 }
-Environment.SetEnvironmentVariable("APPVEYOR_BUILD_VERSION", "$Major.$Minor.$Build.$appBranch")
+[Environment]::SetEnvironmentVariable("APPVEYOR_BUILD_VERSION", "$Major.$Minor.$Build.$appBranch")
 
 echo ""
 echo "*** Create release note..."
