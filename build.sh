@@ -6,6 +6,8 @@
 # ./build.sh           -a true -o linux -n "Android"           -b 16
 # ./build.sh  -c clang -e true -o linux -n "Focal.20.04.clang" -b 17
 
+# ./build.sh -a true
+
 # tar zxf .
 
 #+ colors const
@@ -20,7 +22,7 @@ buildname=$APPVEYOR_JOB_NAME
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 appBranch=$(git rev-parse --abbrev-ref HEAD)
-osname=$(uname)
+osname=$(uname -s)
 
 while getopts b:c:o:d:a:e:n: flag
 do
@@ -35,13 +37,12 @@ do
     esac
 done
 
-if [ -z ${buildnum+x} ];     then buildnum=0; fi
+if [ -z ${buildnum} ];       then buildnum=0; fi
 if [ -z ${compiler+x} ];     then compiler=gcc; fi
-if [ -z ${osname+x} ];       then osname=$(uname -s); fi
 if [ -z ${debbuild+x} ];     then debbuild=false; fi
 if [ -z ${androidbuild+x} ]; then androidbuild=false; fi
 if [ -z ${extdbuild+x} ];    then extdbuild=false; fi
-if [ -z ${buildname+x} ];    then buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"; fi
+if [ -z ${buildname} ];      then buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"; fi
 
 osname=${osname,,}
 
@@ -116,7 +117,7 @@ echo "***** Test Qt";
 
 REQUIRES_INSTALL_QT_5=false
 
-if ! [ -x "$(command -v qmake)" ]; then
+if ! [ -x "$(command -v qmake)" ] || [[ "$androidbuild" == true ]]; then
     echo "Qt not found. Search for standalone path..."
     if [[ "$androidbuild" == false ]]; then
         tmpcompiler=gcc_64
@@ -260,9 +261,9 @@ if [[ "$extdbuild" == true ]]; then
     echo "***** Run custom build";
      
     echo "** Prepare path";
-    tmpName="${buildname}.${releaseName}"
+    tmpName="${releaseName}.${buildname}"
 
-    RELEASE_DIR=$(pwd)/Release/logview_${tmpName,,}_${Major}.${Minor}.${buildnum}
+    RELEASE_DIR=$(pwd)/Release/logview_${Major}.${Minor}.${buildnum}_${tmpName,,}
     echo $RELEASE_DIR;
 
     rm -rf "${RELEASE_DIR}"
@@ -279,7 +280,7 @@ if [[ "$extdbuild" == true ]]; then
 
     echo "** Run make";
 
-    make -j4
+    make -j$(nproc)
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 
 #     echo "** Cleanup ";
@@ -354,7 +355,7 @@ if [[ "$androidbuild" == true ]]; then
     
     echo "** Prepare path";
     tmpName="${releaseName}.android"
-    RELEASE_DIR=$(pwd)/Release/logview_${tmpName,,}.${Major}.${Minor}.${buildnum}
+    RELEASE_DIR=$(pwd)/Release/logview_${Major}.${Minor}.${buildnum}_${tmpName,,}
     echo $RELEASE_DIR;
 
     rm -rf "${RELEASE_DIR}"
@@ -364,19 +365,40 @@ if [[ "$androidbuild" == true ]]; then
 
     echo "Android build path [$(pwd)]";
 
+#   $HOME/Android/Sdk/android_openssl
+
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+    export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+    export ANDROID_NDK_ROOT=$HOME/Android/Sdk/ndk/21.3.6528147
+#   $HOME/Android/Sdk/ndk-bundle
+#   $HOME/Android/Sdk/ndk
+
+    echo "** JAVA_HOME        = [$JAVA_HOME]";
+    echo "** ANDROID_SDK_ROOT = [$ANDROID_SDK_ROOT]";
+    echo "** ANDROID_NDK_ROOT = [$ANDROID_NDK_ROOT]";
+
     echo "** Run qmake";
-# -Wall -spec $QMAKESPEC QMAKE_CC=$QMAKE_CC QMAKE_CXX=$QMAKE_CXX QMAKE_LINK=$QMAKE_CXX
-    qmake $XQFLAG  ../../*.pro ;
+
+    qmake $XQFLAG ../../*.pro -spec android-clang CONFIG+=qtquickcompiler ANDROID_ABIS="armeabi-v7a arm64-v8a x86 x86_64" ;
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 
     echo "** Run make";
 
-    make -j$(nproc)
+#     export PATH="$ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/:$PATH"
+
+    $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make -f $RELEASE_DIR/Makefile qmake_all
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-   
-    make -j$(nproc) apk_install_target
+
+    $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make -j$(nproc)
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-   
+
+    $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make -j$(nproc) apk_install_target
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+
+    androiddeployqt --input android-logview-deployment-settings.json --output android-build --android-platform android-30 --jdk $JAVA_HOME --gradle
+
+#  android-build//build/outputs/apk/debug/android-build-debug.apk
+
     echo "";
     echo "***** End android build";
 fi;
