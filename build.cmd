@@ -15,6 +15,16 @@ if %QTDIR:_64=%==%QTDIR% (set BUILD_PLATFORMID=x86) else set BUILD_PLATFORMID=x6
 powershell.exe -noprofile -executionpolicy bypass -file version.ps1 -platformId %BUILD_PLATFORMID%
 if %ERRORLEVEL% NEQ 0 GOTO error
 
+set TEMP_FOLDER=%cd%
+if exist "%APPVEYOR_BUILD_FOLDER%\tmpver.txt" (
+	cd %APPVEYOR_BUILD_FOLDER%
+	set /P APPVEYOR_BUILD_VERSION=<tmpver.txt
+	DEL "%APPVEYOR_BUILD_FOLDER%\tmpver.txt"
+	cd %TEMP_FOLDER%
+)
+
+@echo Build version [%APPVEYOR_BUILD_VERSION%]
+
 if [%APPVEYOR_BUILD_FOLDER%] == [] set APPVEYOR_BUILD_FOLDER=%cd%
 
 if [%CONFIGURATION%] == [] set CONFIGURATION=Release
