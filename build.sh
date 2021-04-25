@@ -212,8 +212,13 @@ if [[ "$debbuild" == true ]]; then
     
     mkdir -p $SRC_DIR/Artifacts_deb
 
-    mv $SRC_DIR/../*.deb $SRC_DIR/Artifacts_deb/ 2>/dev/null || true
-    mv $SRC_DIR/../*.ddeb $SRC_DIR/Artifacts_deb/ 2>/dev/null || true
+    mv -v $SRC_DIR/../*.deb $SRC_DIR/Artifacts_deb/
+
+#     2>/dev/null || true
+
+    mv -v $SRC_DIR/../*.ddeb $SRC_DIR/Artifacts_deb/
+
+#     2>/dev/null || true
 
     pushd $PWD
 
