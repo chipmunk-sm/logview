@@ -16,9 +16,11 @@
 #~ colors const
 
 buildnum=$APPVEYOR_BUILD_NUMBER
+buildname=$APPVEYOR_JOB_NAME
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 appBranch=$(git rev-parse --abbrev-ref HEAD)
+osname=$(uname)
 
 while getopts b:c:o:d:a:e:n: flag
 do
@@ -109,20 +111,35 @@ fi
 
 
 # ************************************************************************
-PATH="$HOME/Qt/5.15/gcc_64/bin/:$HOME/Qt/5.15.2/gcc_64/bin/:$PATH"
-export PATH
 
 echo "***** Test Qt";
 
 REQUIRES_INSTALL_QT_5=false
 
 if ! [ -x "$(command -v qmake)" ]; then
+    echo "Qt not found. Search for standalone path..."
+    if [[ "$androidbuild" == false ]]; then
+        tmpcompiler=gcc_64
+    else
+        tmpcompiler=android
+#         compiler=gcc
+        compiler=clang
+    fi
+    if [ -x "$(command -v $HOME/Qt/5.15/${tmpcompiler}/bin/qmake)" ]; then
+        PATH="$HOME/Qt/5.15/${tmpcompiler}/bin/:$PATH"
+        export PATH
+    elif [ -x "$(command -v $HOME/Qt/5.15.2/${tmpcompiler}/bin/qmake)" ]; then
+        PATH="$HOME/Qt/5.15.2/${tmpcompiler}/bin/:$PATH"
+        export PATH
+    fi
+fi
+
+if ! [ -x "$(command -v qmake)" ]; then
     echo "Qt not found. Requires Qt 5 to be installed."
-    # Qt missing...
     REQUIRES_INSTALL_QT_5=true
 fi
 
-if [[ "$REQUIRES_INSTALL_QT_5" = false ]]; then
+if [[ "$REQUIRES_INSTALL_QT_5" == false ]]; then
     qmake -v | grep -q 'Using Qt version 5'
     if [[ $? -eq 1 ]]; then
         qmake -qt=qt5 -v | grep -q 'Using Qt version 5'
@@ -142,13 +159,14 @@ if [[ "$REQUIRES_INSTALL_QT_5" = true ]]; then
         sudo apt-get install -y --no-install-recommends qt5-qmake qtbase5-dev qttools5-dev-tools;
 #         sudo apt-get -y install sbuild schroot debootstrap 
 #         sudo apt-get -y devscripts fakeroot debhelper
-    fi
+        REQUIRES_INSTALL_QT_5=false
     #osx
-    if [[ "$osname" == "osx" ]]; then
+    elif [[ "$osname" == "osx" ]] || [[ "$osname" == "darwin" ]] ; then
         brew update ;
         brew install qt5 ;
         export PATH=$(brew --prefix)/opt/qt5/bin:$PATH ;
         echo $PATH;
+        REQUIRES_INSTALL_QT_5=false
     fi
 fi
 
@@ -163,7 +181,7 @@ if [[ "$REQUIRES_INSTALL_QT_5" = false ]]; then
 fi
 
 QTDIR=$(command -v qmake)
-echo "qmake path [${QTDIR}]"
+echo "qmake path QTDIR = [${QTDIR}]"
 
 qmake $XQFLAG --version
 retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
@@ -197,7 +215,7 @@ SRC_DIR=$(pwd)
 # ************** build with debuild ****************
 if [[ "$debbuild" == true ]]; then
     echo "";
-    echo "***** Run $ debuild -- binary";
+    echo "***** Run debuild -- binary";
 #     sudo apt-get update;
 #     sudo apt-get -y install --no-install-recommends qtbase5-dev qttools5-dev-tools devscripts fakeroot debhelper;
 
@@ -226,10 +244,12 @@ if [[ "$debbuild" == true ]]; then
     
     for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
 
+    ls -l
+    
     popd
 
     echo "";
-    echo "***** End $ debuild -- binary";
+    echo "***** End debuild -- binary";
     echo "";
 fi
     
@@ -237,7 +257,7 @@ fi
 if [[ "$extdbuild" == true ]]; then
 
     echo "";
-    echo "***** Run $ custom build";
+    echo "***** Run custom build";
      
     echo "** Prepare path";
     tmpName="${buildname}.${releaseName}"
@@ -324,13 +344,13 @@ if [[ "$extdbuild" == true ]]; then
 #     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
     
      echo "";
-     echo "***** End $ custom build";
+     echo "***** End custom build";
      cd ${SRC_DIR}
 fi;
 
 if [[ "$androidbuild" == true ]]; then
     echo "";
-    echo "***** Run $ android build";
+    echo "***** Run android build";
     
     echo "** Prepare path";
     tmpName="${releaseName}.android"
@@ -339,23 +359,26 @@ if [[ "$androidbuild" == true ]]; then
 
     rm -rf "${RELEASE_DIR}"
     mkdir -p $RELEASE_DIR
-
+    
     cd $RELEASE_DIR
 
-    echo "Build path [$(pwd)]";
+    echo "Android build path [$(pwd)]";
 
     echo "** Run qmake";
-
-    qmake $XQFLAG -Wall -spec $QMAKESPEC QMAKE_CC=$QMAKE_CC QMAKE_CXX=$QMAKE_CXX QMAKE_LINK=$QMAKE_CXX ../../*.pro ;
+# -Wall -spec $QMAKESPEC QMAKE_CC=$QMAKE_CC QMAKE_CXX=$QMAKE_CXX QMAKE_LINK=$QMAKE_CXX
+    qmake $XQFLAG  ../../*.pro ;
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
 
     echo "** Run make";
 
-    make -j4
+    make -j$(nproc)
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+   
+    make -j$(nproc) apk_install_target
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
    
     echo "";
-    echo "***** End $ android build";
+    echo "***** End android build";
 fi;
 
 
