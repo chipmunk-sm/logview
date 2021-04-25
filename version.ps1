@@ -88,11 +88,15 @@ $Minor = $srrayStr[1]
 $buildName = $srrayStr[2]
 
 echo "[$LastTag] => [$Major.$Minor.$Build.$buildName]"
+
+$env:APPVEYOR_BUILD_VERSION="$Major.$Minor.$Build.$appBranch"
+
 if (Get-Command Update-AppveyorBuild -errorAction SilentlyContinue)
 {
-    Update-AppveyorBuild -Version "$Major.$Minor.$Build.$appBranch"
+    Update-AppveyorBuild -Version $env:APPVEYOR_BUILD_VERSION
 }
-[Environment]::SetEnvironmentVariable("APPVEYOR_BUILD_VERSION", "$Major.$Minor.$Build.$appBranch")
+
+[System.IO.File]::WriteAllText($(Join-Path $buildFolder "tmpver.txt"), $env:APPVEYOR_BUILD_VERSION, [Text.Encoding]::ASCII)
 
 echo ""
 echo "*** Create release note..."
