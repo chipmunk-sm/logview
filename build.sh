@@ -18,6 +18,7 @@
 buildnum=$APPVEYOR_BUILD_NUMBER
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
+appBranch=$(git rev-parse --abbrev-ref HEAD)
 
 while getopts b:c:o:d:a:e:n: flag
 do
@@ -88,12 +89,16 @@ cat "debian/changelog";
 echo ""
 echo "***** Create ver.h";
 
-versionFile="\n#define FVER_NAME \"${releaseName}\"\n#define FVER1 ${Major}\n#define FVER2 ${Minor}\n#define FVER3 ${buildnum}\n#define FVER4 0\n"
+
+
+versionFile="\n#define FVER_NAME \"${releaseName}\"\n#define FVER1 ${Major}\n#define FVER2 ${Minor}\n#define FVER3 ${buildnum}\n#define FVER4 0\n#define FBRANCH \"$appBranch\"\n#define FDISTR \"$buildname\"\n#define RELEASENOTE \"$releasenote\"\n"
 echo -e "$versionFile" > "ver.h"
 cat "ver.h";
 
 echo "***** Update build version";
-appveyor UpdateBuild -version "$Major.$Minor.$buildnum"
+
+
+appveyor UpdateBuild -version "$Major.$Minor.$buildnum.$appBranch"
 
 if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuild" == false ]]; then
     echo "";

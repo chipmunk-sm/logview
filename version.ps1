@@ -73,13 +73,6 @@ Write-Host "*** Parse GIT attributes..."
 Write-Host ""
 
 $revision = "HEAD" 
-$Build=0
-
-$Build = $env:appveyor_build_number
-if($Build)
-{
-    $Build = 0
-}
 
 $LastTag = git -C $sourceDir describe --tags --first-parent --match "*" $revision 2>$null
 if (!$LastTag) 
