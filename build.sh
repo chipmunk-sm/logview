@@ -224,30 +224,25 @@ if [[ "$debbuild" == true ]]; then
     if [[ "$VERSION_ID" == "16.04" ]]; then debuild binary ; else debuild -- binary ; fi
     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
     
-#     mv "${SRC_DIR}/../*.deb" "${SRC_DIR}/"
-#     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-#     mv "${SRC_DIR}/../*.ddeb" "${SRC_DIR}/"
-#     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-    
-    mkdir -p $SRC_DIR/Artifacts_deb
+    mkdir -p $SRC_DIR/Artifacts
 
-    mv -v $SRC_DIR/../*.deb $SRC_DIR/Artifacts_deb/
-
+    mv -v $SRC_DIR/../*.deb $SRC_DIR/Artifacts/
 #     2>/dev/null || true
 
-    mv -v $SRC_DIR/../*.ddeb $SRC_DIR/Artifacts_deb/
-
+    mv -v $SRC_DIR/../*.ddeb $SRC_DIR/Artifacts/
 #     2>/dev/null || true
 
     pushd $PWD
 
-    cd $SRC_DIR/Artifacts_deb
+    cd $SRC_DIR/Artifacts
     
     for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
 
     ls -l
     
     popd
+    
+    mv -v $SRC_DIR/Artifacts/*deb $SRC_DIR/
 
     echo "";
     echo "***** End debuild -- binary";
@@ -343,73 +338,6 @@ if [[ "$extdbuild" == true ]]; then
 # 
 #     md5sum ${RELEASE_DIR}.deb
 #     retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-    
-     echo "";
-     echo "***** End custom build";
-     cd ${SRC_DIR}
-fi;
-
-if [[ "$androidbuild" == true ]]; then
-    echo "";
-    echo "***** Run android build";
-    
-    echo "** Prepare path";
-    tmpName="${releaseName}.android"
-    RELEASE_DIR=$(pwd)/Release/logview_${Major}.${Minor}.${buildnum}_${tmpName,,}
-    echo $RELEASE_DIR;
-
-    rm -rf "${RELEASE_DIR}"
-    mkdir -p $RELEASE_DIR
-    
-    cd $RELEASE_DIR
-
-    echo "Android build path [$(pwd)]";
-
-#   $HOME/Android/Sdk/android_openssl
-
-    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-    export ANDROID_SDK_ROOT=$HOME/Android/Sdk
-    export ANDROID_NDK_ROOT=$HOME/Android/Sdk/ndk/21.3.6528147
-#   $HOME/Android/Sdk/ndk-bundle
-#   $HOME/Android/Sdk/ndk
-
-    echo "** JAVA_HOME        = [$JAVA_HOME]";
-    echo "** ANDROID_SDK_ROOT = [$ANDROID_SDK_ROOT]";
-    echo "** ANDROID_NDK_ROOT = [$ANDROID_NDK_ROOT]";
-
-    echo "** Run qmake";
-
-    qmake $XQFLAG ../../*.pro -spec android-clang CONFIG+=qtquickcompiler ANDROID_ABIS="armeabi-v7a arm64-v8a x86 x86_64" ;
-    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-
-    echo "** Run make";
-
-#     export PATH="$ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/:$PATH"
-
-    $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make -f $RELEASE_DIR/Makefile qmake_all
-    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-
-    $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make -j$(nproc)
-    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-
-    $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make -j$(nproc) apk_install_target
-    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
-
-    androiddeployqt --input android-logview-deployment-settings.json --output android-build --android-platform android-30 --jdk $JAVA_HOME --gradle
-
-#  android-build//build/outputs/apk/debug/android-build-debug.apk
-
-    echo "";
-    echo "***** End android build";
-fi;
-
-
-# 
-# exit 0
-
-# echo ""
-# echo "***** Prepare orig.tar.gz";
-# echo ""
 
 # tar czf "./../logview_${Major}.${Minor}.${buildnum}.orig.tar.gz" "$(pwd)"
 
@@ -420,6 +348,130 @@ fi;
 # sudo apt install apt-cacher-ng
 # newgrp sbuild
 # sudo sbuild-createchroot --include=eatmydata,ccache,gnupg unstable /srv/chroot/unstable-${archxx}-sbuild http://127.0.0.1:3142/deb.debian.org/debian
-# 
-# sudo sbuild-update -udcar u
+# # sudo sbuild-update -udcar u
 # sbuild 
+
+
+     echo "";
+     echo "***** End custom build";
+     cd ${SRC_DIR}
+fi;
+
+if [[ "$androidbuild" == true ]]; then
+    echo "";
+    echo "***** Run android build";
+    
+    echo "** Prepare path";
+    
+    RELEASE_DIR=$(pwd)/AndroidRelease
+
+    rm -rf "${RELEASE_DIR}"
+    mkdir -p $RELEASE_DIR
+    
+    cd $RELEASE_DIR
+
+    echo "Android build path [$(pwd)]";
+
+if [ -z "${JAVA_HOME+x}" ]; then
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+fi
+
+if [ -z "${ANDROID_SDK_ROOT+x}" ]; then
+     if [ -x "$(command -v $HOME/Android/Sdk/tools/bin/sdkmanager)" ]; then
+         echo "Use local SDK"
+         export ANDROID_SDK_ROOT=$HOME/android-sdk
+     elif [ -x "$(command -v $HOME/android-sdk/cmdline-tools/tools/bin/sdkmanager)" ]; then
+         echo "Use cached SDK"
+         export ANDROID_SDK_ROOT=$HOME/android-sdk
+     else
+         if ! [ -f "$HOME/androidsdk.zip" ]; then
+            echo "download SDK"
+            curl -L -k -s -o "$HOME/androidsdk.zip" https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip;
+         fi
+         echo "unzip SDK"
+         export ANDROID_SDK_ROOT=$HOME/android-sdk
+         mkdir -p $ANDROID_SDK_ROOT
+         
+         unzip -qq "$HOME/androidsdk.zip" -d "$ANDROID_SDK_ROOT/cmdline-tools";
+         touch "$ANDROID_SDK_ROOT/repositories.cfg"
+         echo "Installing packages"
+         cd $ANDROID_SDK_ROOT/cmdline-tools/tools/bin
+         yes | ./sdkmanager --licenses 
+         yes | ./sdkmanager --update
+         ./sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.2"
+         cd -
+     fi
+fi
+
+if [ -z "${ANDROID_NDK_ROOT+x}" ]; then
+     if [ -x "$(command -v $HOME/Android/Sdk/ndk/21.3.6528147/prebuilt/linux-x86_64/bin/make)" ]; then
+         echo "Use local NDK"
+         export ANDROID_NDK_ROOT=$HOME/Android/Sdk/ndk/21.3.6528147
+     elif [ -x "$(command -v $HOME/android-ndk/build/ndk-build)" ]; then
+         echo "Use cached NDK"
+         export ANDROID_NDK_ROOT=$HOME/android-ndk
+     else
+         if ! [ -f "$HOME/androidndk.zip" ]; then
+            echo "download NDK"
+            curl -L -k -s -o "$HOME/androidndk.zip" https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip;
+         fi
+         echo "unzip NDK"
+         export ANDROID_NDK_ROOT=$HOME/android-ndk
+         unzip -qq "$HOME/androidndk.zip" -d "$(pwd)/tmp";
+         mv -v $(pwd)/tmp/android-ndk-r* "$ANDROID_NDK_ROOT"
+     fi
+fi
+
+
+#   $HOME/Android/Sdk/android_openssl
+
+    echo "** JAVA_HOME        = [$JAVA_HOME]";
+    echo "** ANDROID_SDK_ROOT = [$ANDROID_SDK_ROOT]";
+    echo "** ANDROID_NDK_ROOT = [$ANDROID_NDK_ROOT]";
+
+    echo "** Run qmake";
+
+    qmake $XQFLAG ../*.pro -spec android-clang CONFIG-=debug CONFIG+=release  CONFIG+=qtquickcompiler ANDROID_ABIS="armeabi-v7a arm64-v8a x86 x86_64"
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+
+    echo "** Run make qmake_all";
+    make -f $RELEASE_DIR/Makefile qmake_all
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+
+    echo "** Run make ";
+#     2>&1 > /dev/null
+    make -j$(nproc)
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+
+    echo "** Run make apk_install_target";
+    make -j$(nproc) apk_install_target
+    retval=$?; if ! [[ $retval -eq 0 ]]; then echo "Error [$retval]"; exit 1; fi
+# --verbose --android-platform android-30
+    androiddeployqt --input android-logview-deployment-settings.json --no-gdbserver --gradle --aab --jarsigner --release --output android-build --jdk $JAVA_HOME
+    
+    mkdir -p $SRC_DIR/Artifacts
+
+    mv -v $SRC_DIR/AndroidRelease/android-build/build/outputs/bundle/release/*.aab $SRC_DIR/Artifacts/
+    mv -v $SRC_DIR/AndroidRelease/android-build/build/outputs/apk/release/*.apk $SRC_DIR/Artifacts/
+#     mv -v $SRC_DIR/AndroidRelease/android-build/build/outputs/bundle/debug/*.aab $SRC_DIR/Artifacts/
+#     mv -v $SRC_DIR/AndroidRelease/android-build/build/outputs/apk/debug/*.apk $SRC_DIR/Artifacts/
+
+    echo "** Rename";
+    pushd $PWD
+
+    cd $SRC_DIR/Artifacts
+
+    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}.${buildnum}}" ; done
+
+    ls -l
+
+    popd
+
+    mv -v $SRC_DIR/Artifacts/*.aab $SRC_DIR/
+    mv -v $SRC_DIR/Artifacts/*.apk $SRC_DIR/
+
+    echo "";
+    echo "***** End android build";
+fi;
+
+

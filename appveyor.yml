@@ -56,7 +56,10 @@ build_script:
 
 artifacts:
   - path: '*.zip'
-  - path: 'Artifacts_deb/*deb'
+  - path: '*.deb'
+  - path: '*.ddeb'
+  - path: '*.aab'
+  - path: '*.apk'
 
     
 deploy:
