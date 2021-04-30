@@ -34,9 +34,9 @@ environment:
     #APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
     #BUILD_FLAG: -d
 
-  - job_name: "android"
-    APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
-    BUILD_FLAG: -a
+  #- job_name: "android"
+    #APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
+    #BUILD_FLAG: -a
 
 install:
   - sh: |
