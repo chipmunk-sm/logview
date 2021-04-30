@@ -38,11 +38,18 @@ do
 done
 
 if [ -z ${buildnum} ];       then buildnum=0; fi
-if [ -z ${compiler+x} ];     then compiler=gcc; fi
 if [ -z ${debbuild+x} ];     then debbuild=false; fi
 if [ -z ${androidbuild+x} ]; then androidbuild=false; fi
 if [ -z ${extdbuild+x} ];    then extdbuild=false; fi
 if [ -z ${buildname} ];      then buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"; fi
+
+if [ -z ${compiler+x} ]; then
+    if [[ "$androidbuild" == true ]]; then
+        compiler=clang ;
+    else
+        compiler=gcc;
+    fi
+fi
 
 osname=${osname,,}
 
@@ -93,7 +100,6 @@ echo ""
 echo "***** Create ver.h";
 
 
-
 versionFile="\n#define FVER_NAME \"${releaseName}\"\n#define FVER1 ${Major}\n#define FVER2 ${Minor}\n#define FVER3 ${buildnum}\n#define FVER4 0\n#define FBRANCH \"$appBranch\"\n#define FDISTR \"$buildname\"\n#define RELEASENOTE \"$releasenote\"\n"
 echo -e "$versionFile" > "ver.h"
 cat "ver.h";
@@ -110,6 +116,8 @@ if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuil
     exit 0;
 fi
 
+ls -l $HOME
+    exit 0;
 
 # ************************************************************************
 
@@ -118,20 +126,19 @@ echo "***** Test Qt";
 REQUIRES_INSTALL_QT_5=false
 
 if ! [ -x "$(command -v qmake)" ] || [[ "$androidbuild" == true ]]; then
-    echo "Qt not found. Search for standalone path..."
     if [[ "$androidbuild" == false ]]; then
         tmpcompiler=gcc_64
+        echo "Qt not found. Search for standalone path..."
     else
         tmpcompiler=android
-#         compiler=gcc
-        compiler=clang
+        echo "Search Qt for android..."
     fi
     if [ -x "$(command -v $HOME/Qt/5.15/${tmpcompiler}/bin/qmake)" ]; then
-        PATH="$HOME/Qt/5.15/${tmpcompiler}/bin/:$PATH"
-        export PATH
+        echo "Found Qt path [$HOME/Qt/5.15/${tmpcompiler}/bin/qmake]"
+        export PATH="$HOME/Qt/5.15/${tmpcompiler}/bin/:$PATH"
     elif [ -x "$(command -v $HOME/Qt/5.15.2/${tmpcompiler}/bin/qmake)" ]; then
-        PATH="$HOME/Qt/5.15.2/${tmpcompiler}/bin/:$PATH"
-        export PATH
+        echo "Found Qt path [$HOME/Qt/5.15.2/${tmpcompiler}/bin/qmake]"
+        export PATH="$HOME/Qt/5.15.2/${tmpcompiler}/bin/:$PATH"
     fi
 fi
 
