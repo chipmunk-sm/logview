@@ -116,7 +116,7 @@ if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuil
     exit 0;
 fi
 
-ls -l $HOME/Qt/5.15
+ls -l $HOME/Qt/5.15/
     exit 0;
 
 # ************************************************************************
