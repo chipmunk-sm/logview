@@ -116,8 +116,8 @@ if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuil
     exit 0;
 fi
 
-ls -la /home/appveyor/Qt/5.15.2
-    exit 0;
+# ls -la $HOME/Qt/5.15.2
+#     exit 0;
 
 # ************************************************************************
 
@@ -362,7 +362,7 @@ if [[ "$extdbuild" == true ]]; then
      echo "";
      echo "***** End custom build";
      cd ${SRC_DIR}
-fi;
+fi
 
 if [[ "$androidbuild" == true ]]; then
     echo "";
@@ -383,24 +383,28 @@ if [ -z "${JAVA_HOME+x}" ]; then
     export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 fi
 
+# ANDROID_SDK_ROOT
 if [ -z "${ANDROID_SDK_ROOT+x}" ]; then
-     if [ -x "$(command -v $HOME/Android/Sdk/tools/bin/sdkmanager)" ]; then
-         echo "Use local SDK"
+     if   [ -x "$(command -v $HOME/android-sdk/cmdline-tools/tools/bin/sdkmanager)" ]; then
+         echo "Use exist SDK (tools)"
          export ANDROID_SDK_ROOT=$HOME/android-sdk
-     elif [ -x "$(command -v $HOME/android-sdk/cmdline-tools/tools/bin/sdkmanager)" ]; then
-         echo "Use cached SDK"
+     elif [ -x "$(command -v $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager)" ]; then
+         echo "Use exist SDK (latest)"
          export ANDROID_SDK_ROOT=$HOME/android-sdk
      else
          if ! [ -f "$HOME/androidsdk.zip" ]; then
-            echo "download SDK"
+            echo "Download android SDK"
             curl -L -k -s -o "$HOME/androidsdk.zip" https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip;
          fi
-         echo "unzip SDK"
+         echo "Unzip SDK"
          export ANDROID_SDK_ROOT=$HOME/android-sdk
+
+         mkdir -p "$HOME/.android"
+         touch "$HOME/.android/repositories.cfg"
+
          mkdir -p $ANDROID_SDK_ROOT
-         
          unzip -qq "$HOME/androidsdk.zip" -d "$ANDROID_SDK_ROOT/cmdline-tools";
-         touch "$ANDROID_SDK_ROOT/repositories.cfg"
+
          echo "Installing packages"
          cd $ANDROID_SDK_ROOT/cmdline-tools/tools/bin
          yes | ./sdkmanager --licenses 
@@ -410,32 +414,85 @@ if [ -z "${ANDROID_SDK_ROOT+x}" ]; then
      fi
 fi
 
-if [ -z "${ANDROID_NDK_ROOT+x}" ]; then
-     if [ -x "$(command -v $HOME/Android/Sdk/ndk/21.3.6528147/prebuilt/linux-x86_64/bin/make)" ]; then
-         echo "Use local NDK"
-         export ANDROID_NDK_ROOT=$HOME/Android/Sdk/ndk/21.3.6528147
-     elif [ -x "$(command -v $HOME/android-ndk/build/ndk-build)" ]; then
-         echo "Use cached NDK"
-         export ANDROID_NDK_ROOT=$HOME/android-ndk
+# ANDROID_NDK_ROOT
+if ! [ -x "$(command -v $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make)" ]; then
+
+     if [ -d "$ANDROID_SDK_ROOT/ndk" ]; then
+         echo "Local NDK folder exist [$ANDROID_SDK_ROOT/ndk]"
+         testFolder=$ANDROID_SDK_ROOT/ndk/*/
+         listNdk=$(ls -d $testFolder | sort)
+         echo -e "Local NDK list:\n$listNdk"
+         export ANDROID_NDK_ROOT=$(echo "$listNdk" | tail -n1)
+         echo -e "NDK path for test [$ANDROID_NDK_ROOT]"
+     fi
+
+     if [ -x "$(command -v $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make)" ]; then
+         echo "Use ANDROID_NDK_ROOT=[$ANDROID_NDK_ROOT]"
      else
+#        sdkUrl="https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip"
+#        SHA1Checksum="50250fcba479de477b45801e2699cca47f7e1267  $HOME/androidndk.zip"
+        sdkUrl="https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip"
+        SHA1Checksum="bcf4023eb8cb6976a4c7cff0a8a8f145f162bf4d  $HOME/androidndk.zip"
+#        sdkUrl="https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip"
+#        SHA1Checksum="c3ebc83c96a4d7f539bd72c241b2be9dcd29bda9  $HOME/androidndk.zip"
          if ! [ -f "$HOME/androidndk.zip" ]; then
-            echo "download NDK"
-            curl -L -k -s -o "$HOME/androidndk.zip" https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip;
+            echo -e "Valid NDK not found.\nDownload NDK from [$sdkUrl] to [$HOME/androidndk.zip]"
+            curl -L -k -s -o "$HOME/androidndk.zip" $sdkUrl;
+
          fi
-         echo "unzip NDK"
-         export ANDROID_NDK_ROOT=$HOME/android-ndk
+
+         SHA1ChecksumDownload=$(sha1sum $HOME/androidndk.zip)
+         if [[ $SHA1Checksum != $SHA1ChecksumDownload ]]; then
+            echo "Checksum failed  [$SHA1Checksum] != [$SHA1ChecksumDownload]"
+            exit 1
+         else
+            echo "Checksum OK  [$SHA1Checksum] == [$SHA1ChecksumDownload]"
+         fi
+
+         export ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk
+
+         echo "Unzip NDK [$HOME/androidndk.zip] > [$(pwd)/tmp]"
          unzip -qq "$HOME/androidndk.zip" -d "$(pwd)/tmp";
+
+         listNdkTmpDir=$(ls -d tmp/*/ | sort)
+         echo "List Ndk in 'tmp' [$listNdkTmpDir]"
+
+         verfile=$(echo "$listNdkTmpDir" | tail -n1)
+         echo "Path to NDK [$verfile]"
+
+         verfile=${verfile}/source.properties
+         echo "Path to NDK version file [$verfile]"
+
+         while IFS='=' read -r key value
+         do
+           key=$(echo $key | tr '.' '_')
+           value="$(echo $value | sed -e 's/^[[:space:]]*//')"
+           value="$(echo $value | sed -e 's/[[:space:]]*$//')"
+            eval ${key}=\${value}
+         done < "$verfile"
+
+         echo "NDK revision [$Pkg_Revision]"
+
+         export ANDROID_NDK_ROOT="${ANDROID_NDK_ROOT}/${Pkg_Revision}"
+         echo "Set ANDROID_NDK_ROOT=[$ANDROID_NDK_ROOT]"
+
          mv -v $(pwd)/tmp/android-ndk-r* "$ANDROID_NDK_ROOT"
      fi
 fi
 
-
 #   $HOME/Android/Sdk/android_openssl
+    echo "";
+    echo "********************************************";
+    echo "";
 
     echo "** JAVA_HOME        = [$JAVA_HOME]";
     echo "** ANDROID_SDK_ROOT = [$ANDROID_SDK_ROOT]";
     echo "** ANDROID_NDK_ROOT = [$ANDROID_NDK_ROOT]";
 
+    echo "";
+    echo "********************************************";
+    echo "";
+exit 1
     echo "** Run qmake";
 
     qmake $XQFLAG ../*.pro -spec android-clang CONFIG-=debug CONFIG+=release  CONFIG+=qtquickcompiler ANDROID_ABIS="armeabi-v7a arm64-v8a x86 x86_64"
@@ -479,6 +536,6 @@ fi
 
     echo "";
     echo "***** End android build";
-fi;
+fi
 
 
