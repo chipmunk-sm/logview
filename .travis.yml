@@ -7,17 +7,12 @@ jobs:
       dist: bionic
       os: linux
       env: BUILD_FLAG=-d
- 
-    - name: "Focal.20.04"
-      dist: focal
-      os: linux
-      env: BUILD_FLAG=-d
 
     - name: "Focal.20.04"
       dist: focal
       os: linux
       env: BUILD_FLAG=-d
-      
+
     #- name: "Android"
       #dist: focal
       #os: linux
