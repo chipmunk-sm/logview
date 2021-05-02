@@ -36,7 +36,7 @@ environment:
 install:
   - sh: |
         if [[ "$BUILD_FLAG" == "-a" ]]; then
-            sudo apt-get install -y openjdk-8-jre
+            sudo apt-get install -y openjdk-8-jre;
         else
             sudo apt-get update;
             sudo apt-get install -y --no-install-recommends qtbase5-dev qttools5-dev-tools;
