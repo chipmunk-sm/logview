@@ -29,11 +29,6 @@ environment:
     APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
     BUILD_FLAG: -d
 
-    #Ubuntu1604 - Ubuntu 16.04 (Xenial Xerus)
-  - job_name: "Ubuntu.16.04"
-    APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
-    BUILD_FLAG: -d
-
   #- job_name: "android"
     #APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
     #BUILD_FLAG: -a
