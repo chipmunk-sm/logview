@@ -36,10 +36,5 @@ before_install:
 
 
 script:
-- if [[ "$osname" == "windows" ]]; then
-     echo "windows is unsupported";
-     exit 1;
-  else
-    chmod +x build.sh;
+-   chmod +x build.sh;
     ./build.sh ${BUILD_FLAG} true;
-  fi
