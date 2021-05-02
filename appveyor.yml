@@ -46,9 +46,9 @@ install:
     
     
 build_script:
-  - cmd: DIR C:\Qt\
-  - cmd: DIR C:\Qt\5.15\
-  - cmd: DIR C:\Qt\5.15.2\
+  #- cmd: DIR C:\Qt\
+  #- cmd: DIR C:\Qt\5.15\
+  #- cmd: DIR C:\Qt\5.15.2\
   - cmd: build.cmd
   - sh: ./build.sh ${BUILD_FLAG} true;
 
