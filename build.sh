@@ -18,7 +18,11 @@
 #~ colors const
 
 buildnum=$APPVEYOR_BUILD_NUMBER
+if [ -z ${buildnum} ]; then buildnum=$TRAVIS_BUILD_NUMBER; fi
+
 buildname=$APPVEYOR_JOB_NAME
+if [ -z ${buildname} ]; then buildname=$TRAVIS_JOB_NAME; fi
+
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 appBranch=$(git rev-parse --abbrev-ref HEAD)
