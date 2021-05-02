@@ -125,21 +125,23 @@ echo "***** Test Qt";
 
 REQUIRES_INSTALL_QT_5=false
 
-if ! [ -x "$(command -v qmake)" ] || [[ "$androidbuild" == true ]]; then
-    if [[ "$androidbuild" == false ]]; then
-        tmpcompiler=gcc_64
-        echo "Qt not found. Search for standalone path..."
-    else
-        tmpcompiler=android
-        echo "Search Qt for android..."
-    fi
-    if [ -x "$(command -v $HOME/Qt/5.15/${tmpcompiler}/bin/qmake)" ]; then
-        echo "Found Qt path [$HOME/Qt/5.15/${tmpcompiler}/bin/qmake]"
-        export PATH="$HOME/Qt/5.15/${tmpcompiler}/bin/:$PATH"
-    elif [ -x "$(command -v $HOME/Qt/5.15.2/${tmpcompiler}/bin/qmake)" ]; then
-        echo "Found Qt path [$HOME/Qt/5.15.2/${tmpcompiler}/bin/qmake]"
-        export PATH="$HOME/Qt/5.15.2/${tmpcompiler}/bin/:$PATH"
-    fi
+if [[ "$androidbuild" == false ]]; then
+    xQttype=gcc_64
+    echo "Search Qt gcc_64..."
+else
+    xQttype=android
+    echo "Search Qt for android..."
+fi
+
+xQtpath515=$HOME/Qt/5.15/${xQttype}/bin
+xQtpath5152=$HOME/Qt/5.15.2/${xQttype}/bin
+
+if [ -x "$(command -v $xQtpath515/qmake)" ]; then
+    echo "Found Qt path [$xQtpath515]"
+    export PATH="$xQtpath515/:$PATH"
+elif [ -x "$(command -v $xQtpath5152/qmake)" ]; then
+    echo "Found Qt path [$xQtpath5152]"
+    export PATH="$xQtpath5152/:$PATH"
 fi
 
 if ! [ -x "$(command -v qmake)" ]; then

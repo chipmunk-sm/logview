@@ -1,7 +1,11 @@
 #!/usr/bin/make -f
 
-export DH_VERBOSE = 1
+export DH_VERBOSE=1
 export QT_SELECT=5
+export CFLAGS := $(shell dpkg-buildflags --get CFLAGS) $(shell dpkg-buildflags --get CPPFLAGS)
+export CXXFLAGS := $(shell dpkg-buildflags --get CXXFLAGS) $(shell dpkg-buildflags --get CPPFLAGS)
+export LDFLAGS := $(shell dpkg-buildflags --get LDFLAGS)
+export QT_SELECT := qt5
 
 # Main dh rule
 %:
