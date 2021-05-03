@@ -1,0 +1,69 @@
+
+version: 0.0.{build}
+
+environment:
+  matrix:
+
+  - job_name: "Win10.x64"
+    QTDIR: C:\Qt\5.15.2\msvc2019_64
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    WINVER: Win10
+
+  - job_name: "Win10.x86"
+    QTDIR: C:\Qt\5.15.2\msvc2019
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    WINVER: Win10
+
+  - job_name: "Win8.x64"
+    QTDIR: C:\Qt\5.13.2\msvc2015_64
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    WINVER: Win8
+
+    #Ubuntu2004 - Ubuntu 20.04 (Focal Fossa)
+  - job_name: "Ubuntu.20.04"
+    APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
+    BUILD_FLAG: -d
+
+    #Ubuntu1804 - Ubuntu 18.04 (Bionic Beaver)
+  - job_name: "Ubuntu.18.04"
+    APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
+    BUILD_FLAG: -d
+
+  #- job_name: "android"
+    #APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
+    #BUILD_FLAG: -a
+
+install:
+  - sh: |
+        if [[ "$BUILD_FLAG" == "-a" ]]; then
+            sudo apt-get install -y openjdk-8-jre;
+        else
+            sudo apt-get update;
+            sudo apt-get install -y --no-install-recommends qtbase5-dev qttools5-dev-tools;
+            sudo apt-get install -y --no-install-recommends devscripts fakeroot debhelper;
+        fi;
+        #- sh: sudo apt-get install -y --no-install-recommends git-build-recipe dh-make git-buildpackage;
+    
+    
+build_script:
+  #- cmd: DIR C:\Qt\
+  #- cmd: DIR C:\Qt\5.15\
+  #- cmd: DIR C:\Qt\5.15.2\
+  - cmd: build.cmd
+  - sh: ./build.sh ${BUILD_FLAG} true;
+
+artifacts:
+  - path: '*.zip'
+  - path: '*.deb'
+  - path: '*.ddeb'
+  - path: '*.aab'
+  - path: '*.apk'
+
+    
+deploy:
+- provider: GitHub
+  description: 'New release of logview'
+  auth_token:
+    secure: Wzt04IzSwnytdau8R6dpRXet/npbyur3S02EA35OQBGRKFZyJuUjh95OLFzDrX3N
+  on:
+   APPVEYOR_REPO_TAG: true

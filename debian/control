@@ -1,0 +1,15 @@
+Source: logview
+Section: utils
+Priority: optional
+Maintainer: chipmunk.sm <dannico@linuxmail.org>
+Build-Depends: debhelper,
+            qtbase5-dev,
+            qttools5-dev-tools
+Standards-Version: 4.0.0
+Homepage: https://github.com/chipmunk-sm/logview
+
+Package: logview
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Simple log view/monitor

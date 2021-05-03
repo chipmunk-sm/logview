@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="SVGRoot" width="256" height="256" enable-background="new" version="1.1" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>Copyright (C) 2021 chipmunk.sm &lt;dannico@linuxmail.org&gt;</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="matrix(1.111 0 0 -1.1105 -10.603 258.32)" fill="none">
+  <path d="m55.154 45.404 72.535 74.025 66.418-73.442m-138.95 62.452 72.535 74.025 66.418-73.442" stroke="#fff" stroke-width="18.006"/>
+  <path d="m55.154 45.404 72.535 74.025 66.418-73.442m-138.95 62.452 72.535 74.025 66.418-73.442" stroke="#000" stroke-width="7.2023"/>
+ </g>
+</svg>

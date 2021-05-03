@@ -1,0 +1,16 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: logview
+Source: https://github.com/chipmunk-sm/logview
+
+Files: *
+Copyright: Copyright (C) 2021 chipmunk.sm <dannico@linuxmail.org>
+License: LGPL-3.0
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See License for more details.
+
+On Debian systems, the full text of the GNU LESSER GENERAL PUBLIC LICENSE
+Version 3 can be found in the file '/usr/share/common-licenses/LGPL-3'.
+

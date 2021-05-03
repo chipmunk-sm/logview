@@ -1,0 +1,47 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/folder_config.1.svg</file>
+        <file>data/folder_data.1.svg</file>
+        <file>data/folder_desktop.1.svg</file>
+        <file>data/folder_documents.1.svg</file>
+        <file>data/folder_download.1.svg</file>
+        <file>data/folder_drive.1.svg</file>
+        <file>data/folder_generic.1.svg</file>
+        <file>data/folder_home.1.svg</file>
+        <file>data/folder_music.1.svg</file>
+        <file>data/folder_pictures.1.svg</file>
+        <file>data/folder_temp.1.svg</file>
+        <file>data/folder_videos.1.svg</file>
+        <file>data/folder_internalsd.1.svg</file>
+        <file>data/folder_externalsd.1.svg</file>
+        <file>data/logview_logo.svg</file>
+        <file>data/b_close.1.svg</file>
+        <file>data/b_reset.1.svg</file>
+        <file>data/b_zoom.1.svg</file>
+        <file>data/b_open1.1.svg</file>
+        <file>data/b_open2.1.svg</file>
+        <file>data/b_copy.1.svg</file>
+        <file>data/b_Down.1.svg</file>
+        <file>data/b_Up.1.svg</file>
+        <file>data/b_Down_New.1.svg</file>
+        <file>data/b_menu.1.svg</file>
+        <file>data/folder.1.svg</file>
+        <file>data/file.1.svg</file>
+        <file>data/folder_recent.1.svg</file>
+        <file>data/b_rownum.1.svg</file>
+        <file>data/layout_buttons.svg</file>
+        <file>data/layout_menu.svg</file>
+        <file>data/b_autoscroll.disable.1.svg</file>
+        <file>data/b_autoscroll.enable.1.svg</file>
+        <file>translations/language_en.qm</file>
+        <file>translations/language_ru.qm</file>
+        <file>translations/language_zh_TW.qm</file>
+        <file>translations/language_zh_CN.qm</file>
+        <file>translations/language_sl.qm</file>
+        <file>translations/language_pl.qm</file>
+        <file>translations/language_ja.qm</file>
+        <file>translations/language_fr.qm</file>
+        <file>translations/language_de.qm</file>
+        <file>translations/language_cs.qm</file>
+    </qresource>
+</RCC>

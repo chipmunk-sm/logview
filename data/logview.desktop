@@ -1,0 +1,10 @@
+[Desktop Entry]
+Categories=Utility
+Comment=LogView
+GenericName=LogView
+Name=LogView
+Exec=logview
+Icon=logview_logo
+StartupNotify=true
+Terminal=false
+

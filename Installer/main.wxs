@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+  <?include $(sys.CURRENTDIR)Installer\include.wxi ?>
+
+  <?if $(var.Platform) = x64 ?>
+    <?define Win64 = "yes" ?>
+    <?define ProcessorArchitecture="x64" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+  <?else ?>
+    <?define Win64 = "no" ?>
+    <?define ProcessorArchitecture="x86" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+  <?endif ?>
+
+  <Product Id="$(var.ProductCode)"
+      Name="$(var.Name) $(var.Version) $(var.Platform)"
+      Language="!(loc.LANG)"
+      Version="$(var.Version)"
+      Manufacturer="$(var.Manufacturer)"
+      UpgradeCode="$(var.UpgradeCode)" >
+
+    <!-- Id="$(var.PackageCode)" -->
+    <Package
+      InstallerVersion="300"
+	  Platform="$(var.Platform)"
+      Compressed="yes"
+      InstallScope="perMachine"
+      Description="$(var.Name) $(var.Version) $(var.Platform)"
+	  Comments="$(var.Comments)" />
+
+    <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="gpl-3.0.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="logview_banner.png" />
+    <WixVariable Id="WixUIDialogBmp" Value="logview_dialog.png" />
+
+    <Icon Id="logview_icon.exe" SourceFile="logview_logo.ico" />
+
+    <!-- Remove modify from menu-->
+    <SetProperty Id="ARPNOMODIFY" Value="1" After="InstallValidate" Sequence="execute"/>
+
+    <Property Id="ARPPRODUCTICON"   Value="logview_icon.exe" />
+    <Property Id="ARPHELPLINK"      Value="$(var.ARPHELPLINK)" />
+    <Property Id='ARPCONTACT'       Value="$(var.ARPCONTACT)" />
+    <Property Id='ARPURLINFOABOUT'  Value="$(var.ARPURLINFOABOUT)" />
+
+    <Upgrade Id="$(var.UpgradeCode)">
+      <UpgradeVersion OnlyDetect="yes" Minimum="$(var.Version)" IncludeMinimum="no" Property="NEWER_VERSION_FOUND" />
+      <UpgradeVersion Minimum="0.0.0" IncludeMinimum="yes" Maximum="$(var.Version)" IncludeMaximum="no" Property="OLDER_VERSION_FOUND" />
+    </Upgrade>
+	
+    <Condition Message="!(loc.AppNotSupported)">
+      <![CDATA[Installed OR (VersionNT >= 502)]]>
+    </Condition>
+
+	<?if $(var.Platform) = x64 ?>
+		<Condition Message="!(loc.x86VersionRequired)">
+		<![CDATA[VersionNT64]]>
+		</Condition>
+	<?endif?>
+
+    <CustomAction Id="NewerVersionFound" Error="!(loc.NewerVersionInstalled)" />
+
+    <InstallExecuteSequence>
+
+      <Custom Action="NewerVersionFound" After="FindRelatedProducts">
+        <![CDATA[NEWER_VERSION_FOUND]]>
+      </Custom>
+
+      <RemoveExistingProducts After="InstallInitialize"/>
+      <Custom Action="WixCloseApplications" Before="InstallInitialize" />
+
+    </InstallExecuteSequence>
+
+    <util:CloseApplication Id="CloseExeFile"
+                           CloseMessage="no"
+                           Description="!(loc.CloseAppBeforeContinue)"
+                           ElevatedCloseMessage="no"
+                           RebootPrompt="no"
+                           Target="$(var.ExeProcessName)" />
+
+    <UIRef Id="WixUI_InstallDir" />
+    <UI>
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+    </UI>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="$(var.PlatformProgramFilesFolder)">
+        <Directory Id="INSTALLLOCATION" Name="$(var.Name)" />
+      </Directory>
+    </Directory>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLLOCATION" />
+    <Feature Id="ApplicationFormFeature" Title="$(var.Name)" Level="1">
+      <ComponentGroupRef Id="InstallGroup" />
+    </Feature>
+
+    <!-- Start: Add Desktop and StartMenu shortcut -->
+    <Feature Id="ApplicationShortcut"  Title="$(var.Name)" Level="1">
+      <ComponentRef Id="ApplicationDesktopShortcut" />
+      <ComponentRef Id="ApplicationProgramMenuShortcut" />
+    </Feature>
+
+    <DirectoryRef Id="INSTALLLOCATION">
+
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuFolderApp" Name="$(var.Name)">
+          <Component Id="ApplicationProgramMenuShortcut" Guid="*">
+            <Shortcut Id="ProgramSC" Advertise="no" Name="$(var.Name)" Target="[INSTALLLOCATION]$(var.ExeProcessName)" Icon="logview_icon.exe" IconIndex="0" WorkingDirectory="INSTALLLOCATION"/>
+            <RemoveFolder Id="ProgramMenuFolderApp" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="SOFTWARE\$(var.Name)" Name="ProgramSC" Value="1" Type="integer" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Id="DesktopFolder" SourceName="Desktop">
+        <Component Id="ApplicationDesktopShortcut" Guid="*">
+          <Shortcut Id="DesktopSc"   Advertise="no" Name="$(var.Name)" Target="[INSTALLLOCATION]$(var.ExeProcessName)" Icon="logview_icon.exe" IconIndex="0" WorkingDirectory="INSTALLLOCATION"/>
+          <RegistryValue Root="HKCU" Key="SOFTWARE\$(var.Name)" Name="DesktopSC" Value="1" Type="integer" KeyPath="yes" />
+        </Component>
+      </Directory>
+
+    </DirectoryRef>
+    <!-- End: Add Desktop and StartMenu shortcut -->
+
+  </Product>
+
+</Wix>
