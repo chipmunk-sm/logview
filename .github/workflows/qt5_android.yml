@@ -27,11 +27,10 @@ jobs:
           export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64;
           chmod +x build.sh;
           ./build.sh -a true;
-          echo "BUILD_VERSION_IDS=[$BUILD_VERSION_IDS]"
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: artifact_$BUILD_VERSION_IDS
+          name: artifact
           retention-days: 1
           path: |
                 logview_android*.aab
@@ -53,7 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./logview_android*.aab
           asset_name: aab
           asset_content_type: application/octet-stream
@@ -63,7 +62,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./logview_android*.apk
           asset_name: apk
           asset_content_type: application/octet-stream
