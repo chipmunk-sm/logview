@@ -1,6 +1,11 @@
 name: qt5_android
-on: [push, pull_request]
-  
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [created]
+
 jobs:
   build:
     name: Run build
