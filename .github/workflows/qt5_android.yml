@@ -49,10 +49,12 @@ jobs:
           echo "::set-output name=artifacts_aab_path::${ARTIFACTS_AAB_PATH}"
           ARTIFACTS_AAB_NAME=$(basename $ARTIFACTS_AAB_PATH)
           echo "::set-output name=artifacts_aab_name::${ARTIFACTS_AAB_NAME}"
+          ARTIFACTS_NAME=$(basename $ARTIFACTS_AAB_PATH)
+          echo "::set-output name=artifacts_name::${ARTIFACTS_NAME}"
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: artifact
+          name: ${{ steps.collect_artifact.outputs.artifacts_name }}
           retention-days: 1
           path: |
                 ./Artifacts/logview_android*.aab
