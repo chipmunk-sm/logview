@@ -536,7 +536,7 @@ fi
 
     cd $SRC_DIR/Artifacts
 
-    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}.${buildnum}}" ; done
+    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}}" ; done
 
     ls -l
 
