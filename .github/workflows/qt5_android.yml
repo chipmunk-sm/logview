@@ -21,6 +21,6 @@ jobs:
           ls -l /usr/lib/jvm/;
           export ANDROID_SDK_ROOT=$ANDROID_HOME;
           export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk-bundle;
-          export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64;
+          export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64;
           chmod +x build.sh;
           ./build.sh -a true;
