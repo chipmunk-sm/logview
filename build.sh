@@ -26,7 +26,7 @@ if [ -z ${buildname} ]; then buildname=$TRAVIS_JOB_NAME; fi
 
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
-appBranch=$(git rev-parse --abbrev-ref HEAD)
+appBranch=$(git name-rev --name-only HEAD)
 osname=$(uname -s)
 
 while getopts b:c:o:d:a:e:n: flag
@@ -62,12 +62,15 @@ osname=${osname,,}
 
 chmod +x "./debian/rules"
 
+echo -e "***** ";
 echo -e "Build number \t[$buildnum]";
 echo -e "Compiler     \t[$compiler]";
 echo -e "OS name      \t[$osname]";
 echo -e "Build name   \t[$buildname]";
-echo -e "PATH         \t[$PATH]";
+echo -e "branch       \t[$appBranch]";
 echo -e "PWD          \t[$(pwd)]";
+echo -e "PATH         \t[$PATH]";
+echo -e "***** ";
 
 #windows
 if [[ "$osname" == "windows" ]]; then
@@ -75,8 +78,10 @@ if [[ "$osname" == "windows" ]]; then
     exit 1;
 fi
 
+revision="HEAD"
+
 echo "***** Generate version";
-LastTag=$(git describe --tags --first-parent --match "*" "HEAD")
+LastTag=$(git describe --tags --first-parent --match "*" $revision)
 if [ -z ${LastTag+x} ]; then LastTag="0.0-NotSet"; fi
 
 parsestr="$(echo -e "${LastTag}" | sed -e 's/^[a-zA-Z]*//')"
