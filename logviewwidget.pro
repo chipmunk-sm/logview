@@ -39,12 +39,12 @@ android {
     QT += androidextras
     QT += svg
 
-    ANDROID_API=21
-    __ANDROID_API__=android-21
-    DEFAULT_ANDROID_PLATFORM=21
-    ANDROID_NDK_PLATFORM=android-21
-    DEFAULT_ANDROID_PLATFORM=android-21
-    API_VERSION = android-21
+#    ANDROID_API=21
+#    __ANDROID_API__=android-21
+#    DEFAULT_ANDROID_PLATFORM=21
+#    ANDROID_NDK_PLATFORM=android-21
+#    DEFAULT_ANDROID_PLATFORM=android-21
+#    API_VERSION = android-21
 
     ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 }
@@ -94,14 +94,9 @@ DISTFILES += \
     .travis.yml \
     android/AndroidManifest.xml \
     android/gradle.properties \
-    android/gradle.properties \
-    android/gradle/wrapper/gradle-wrapper.jar \
     android/gradle/wrapper/gradle-wrapper.jar \
     android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradle/wrapper/gradle-wrapper.properties \
     android/gradlew \
-    android/gradlew \
-    android/gradlew.bat \
     android/gradlew.bat \
     android/res/values/libs.xml \
     android/build.gradle \

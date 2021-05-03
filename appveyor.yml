@@ -29,28 +29,35 @@ environment:
     APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
     BUILD_FLAG: -d
 
-    ##Ubuntu1604 - Ubuntu 16.04 (Xenial Xerus)
-  #- job_name: "Ubuntu.16.04"
-    #APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1604
-    #BUILD_FLAG: -d
-
   #- job_name: "android"
     #APPVEYOR_BUILD_WORKER_IMAGE: ubuntu2004
     #BUILD_FLAG: -a
 
 install:
-  - sh: sudo apt-get update
-  - sh: sudo apt-get install -y  --no-install-recommends qtbase5-dev qttools5-dev-tools
-  #- sh: sudo apt-get install -y --no-install-recommends git-build-recipe dh-make git-buildpackage
-  - sh: sudo apt-get install -y --no-install-recommends devscripts fakeroot debhelper
-
+  - sh: |
+        if [[ "$BUILD_FLAG" == "-a" ]]; then
+            sudo apt-get install -y openjdk-8-jre;
+        else
+            sudo apt-get update;
+            sudo apt-get install -y --no-install-recommends qtbase5-dev qttools5-dev-tools;
+            sudo apt-get install -y --no-install-recommends devscripts fakeroot debhelper;
+        fi;
+        #- sh: sudo apt-get install -y --no-install-recommends git-build-recipe dh-make git-buildpackage;
+    
+    
 build_script:
+  #- cmd: DIR C:\Qt\
+  #- cmd: DIR C:\Qt\5.15\
+  #- cmd: DIR C:\Qt\5.15.2\
   - cmd: build.cmd
   - sh: ./build.sh ${BUILD_FLAG} true;
 
 artifacts:
   - path: '*.zip'
-  - path: 'Artifacts_deb/*.deb'
+  - path: '*.deb'
+  - path: '*.ddeb'
+  - path: '*.aab'
+  - path: '*.apk'
 
     
 deploy:

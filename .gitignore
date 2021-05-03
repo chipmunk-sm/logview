@@ -30,3 +30,8 @@ x86
 /Makefile
 /*.kate-swp
 /Installer/include.wxi
+AndroidRelease
+*.aab
+*.apk
+*.deb
+*.ddeb
