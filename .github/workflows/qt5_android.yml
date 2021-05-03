@@ -21,8 +21,6 @@ jobs:
           ls -l /usr/local/lib/android/sdk
           ls -l /usr/local/lib/android/sdk/ndk
           echo "github.event_name [${{github.event_name}}]"
-          echo "github.head_ref   [${{github.head_ref}}]"
-          echo "github.base_ref   [${{github.base_ref}}]"
           echo "github.ref        [${{github.ref}}]"
           export ANDROID_SDK_ROOT=$ANDROID_HOME;
           export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk-bundle;
@@ -30,7 +28,7 @@ jobs:
           chmod +x build.sh;
           ./build.sh -a true;
           echo "BUILD_VERSION_IDS=[$BUILD_VERSION_IDS]"
-      - name: upload artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: artifact_$BUILD_VERSION_IDS
@@ -38,3 +36,34 @@ jobs:
           path: |
                 logview_android*.aab
                 logview_android*.apk
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload release AAB
+        uses: actions/upload-release-asset@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./logview_android*.aab
+          asset_name: aab
+          asset_content_type: application/octet-stream
+      - name: Upload release APK
+        uses: actions/upload-release-asset@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./logview_android*.apk
+          asset_name: apk
+          asset_content_type: application/octet-stream
