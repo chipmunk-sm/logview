@@ -1,49 +1,35 @@
-name: qt5_android
-
-on:
-  push:
-  pull_request:
-  release:
-    types: [created]
-
-jobs:
-  build:
-    name: Run build
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v2.13.2
-        with:
-          version: 5.15.2
-          target: android
-      - name: checkout source
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: build android version
-        run: |
-          echo "ls -l /usr/lib/jvm/";
-          ls -l /usr/lib/jvm/;
-          echo "ls -l /usr/local/lib/android/sdk";
           ls -l /usr/local/lib/android/sdk;
           echo "ls -l /usr/local/lib/android/sdk/ndk";
           ls -l /usr/local/lib/android/sdk/ndk;
-          echo "github.event_name [${{github.event_name}}]";
-          echo "github.ref        [${{github.ref}}]";
+          echo "github.event_name               [${{github.event_name}}]";
+          echo "github.ref                      [${{github.ref}}]";
           echo "github.event.release.upload_url [${{ github.event.release.upload_url }}]";
+      - name: build
+        run: |
           export ANDROID_SDK_ROOT=$ANDROID_HOME;
           export ANDROID_NDK_ROOT=$ANDROID_HOME/ndk-bundle;
           export JAVA_HOME=/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64;
           chmod +x build.sh;
           ./build.sh -a true;
+      - name: Collect artifact
+        id: collect_artifact
+        run: |
+          ARTIFACTS_APK_PATH=$(find $(pwd)/Artifacts -name '*.apk')
+          echo "::set-output name=artifacts_apk_path::${ARTIFACTS_APK_PATH}"
+          ARTIFACTS_APK_NAME=$(basename $ARTIFACTS_APK_PATH)
+          echo "::set-output name=artifacts_apk_name::${ARTIFACTS_APK_NAME}"
+          ARTIFACTS_AAB_PATH=$(find $(pwd)/Artifacts -name '*.aab')
+          echo "::set-output name=artifacts_aab_path::${ARTIFACTS_AAB_PATH}"
+          ARTIFACTS_AAB_NAME=$(basename $ARTIFACTS_AAB_PATH)
+          echo "::set-output name=artifacts_aab_name::${ARTIFACTS_AAB_NAME}"
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: artifact
           retention-days: 1
           path: |
-                logview_android*.aab
-                logview_android*.apk
+                ./Artifacts/logview_android*.aab
+                ./Artifacts/logview_android*.apk
       - name: Upload release AAB
         if: ${{ github.event.release.upload_url }}
         uses: actions/upload-release-asset@v1
@@ -51,8 +37,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./logview_android*.aab
-          asset_name: aab
+          asset_path: ${{ steps.collect_artifact.outputs.artifacts_aab_path }}
+          asset_name: ${{ steps.collect_artifact.outputs.artifacts_aab_name }}
           asset_content_type: application/octet-stream
       - name: Upload release APK
         if:  ${{ github.event.release.upload_url }}
@@ -61,6 +47,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./logview_android*.apk
-          asset_name: apk
+          asset_path: ${{ steps.collect_artifact.outputs.artifacts_apk_path }}
+          asset_name: ${{ steps.collect_artifact.outputs.artifacts_apk_name }}
           asset_content_type: application/octet-stream

@@ -542,8 +542,8 @@ fi
 
     popd
 
-    mv -v $SRC_DIR/Artifacts/*.aab $SRC_DIR/
-    mv -v $SRC_DIR/Artifacts/*.apk $SRC_DIR/
+#     mv -v $SRC_DIR/Artifacts/*.aab $SRC_DIR/
+#     mv -v $SRC_DIR/Artifacts/*.apk $SRC_DIR/
 
     echo "";
     echo "***** End android build";
