@@ -45,7 +45,6 @@ if [ -z ${buildnum} ];       then buildnum=0; fi
 if [ -z ${debbuild+x} ];     then debbuild=false; fi
 if [ -z ${androidbuild+x} ]; then androidbuild=false; fi
 if [ -z ${extdbuild+x} ];    then extdbuild=false; fi
-if [ -z ${buildname} ];      then buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"; fi
 
 if [ -z ${compiler+x} ]; then
     if [[ "$androidbuild" == true ]]; then
@@ -54,6 +53,9 @@ if [ -z ${compiler+x} ]; then
         compiler=gcc;
     fi
 fi
+
+if [ -z ${buildname} ];      then buildname="${VERSION_CODENAME}.${VERSION_ID}.${compiler}"; fi
+
 
 osname=${osname,,}
 
