@@ -500,7 +500,7 @@ fi
     echo "";
     echo "********************************************";
     echo "";
-exit 1
+
     echo "** Run qmake";
 
     qmake $XQFLAG ../*.pro -spec android-clang CONFIG-=debug CONFIG+=release  CONFIG+=qtquickcompiler ANDROID_ABIS="armeabi-v7a arm64-v8a x86 x86_64"
