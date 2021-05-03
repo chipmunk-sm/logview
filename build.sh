@@ -19,6 +19,7 @@
 
 buildnum=$APPVEYOR_BUILD_NUMBER
 if [ -z ${buildnum} ]; then buildnum=$TRAVIS_BUILD_NUMBER; fi
+if [ -z ${buildnum} ]; then buildnum=$GITHUB_RUN_NUMBER; fi
 
 buildname=$APPVEYOR_JOB_NAME
 if [ -z ${buildname} ]; then buildname=$TRAVIS_JOB_NAME; fi
@@ -114,6 +115,8 @@ echo "***** Update build version";
 
 
 appveyor UpdateBuild -version "$Major.$Minor.$buildnum.$appBranch"
+
+export BUILD_VERSION_IDS="$Major.$Minor.$buildnum.$appBranch"
 
 if [[ "$debbuild" == false ]] && [[ "$androidbuild" == false ]] && [[ "$extdbuild" == false ]]; then
     echo "";
