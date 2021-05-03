@@ -82,12 +82,17 @@ revision="HEAD"
 
 echo "***** Generate version";
 LastTag=$(git describe --tags --first-parent --match "*" $revision)
-if [ -z ${LastTag+x} ]; then LastTag="0.0-NotSet"; fi
+if [ -z ${LastTag} ]; then LastTag="0.0-undefined"; fi
 
 parsestr="$(echo -e "${LastTag}" | sed -e 's/^[a-zA-Z]*//')"
 Major=`echo "${parsestr}" | awk -F"[./-]" '{print $1}'`
 Minor=`echo "${parsestr}" | awk -F"[./-]" '{print $2}'`
 releaseName=`echo "${parsestr}" | awk -F"[./-]" '{print $3}'`
+
+if [ -z ${Major} ]; then Major=0; fi
+if [ -z ${Minor} ]; then Minor=0; fi
+if [ -z ${releaseName} ]; then releaseName=undefined; fi
+
 echo -e "* [$LastTag] => [$Major.$Minor.$buildnum-$releaseName]";
 
 echo "*** Create release note...";
