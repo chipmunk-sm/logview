@@ -1,8 +1,35 @@
+name: qt5_android
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Run build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2.13.2
+        with:
+          version: 5.15.2
+          target: android
+      - name: checkout source
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Environment info
+        run: |
+          echo "ls -l /usr/lib/jvm/";
+          ls -l /usr/lib/jvm/;
+          echo "ls -l /usr/local/lib/android/sdk";
           ls -l /usr/local/lib/android/sdk;
           echo "ls -l /usr/local/lib/android/sdk/ndk";
           ls -l /usr/local/lib/android/sdk/ndk;
-          echo "github.event_name               [${{github.event_name}}]";
-          echo "github.ref                      [${{github.ref}}]";
+          echo "github.event_name [${{github.event_name}}]";
+          echo "github.ref        [${{github.ref}}]";
           echo "github.event.release.upload_url [${{ github.event.release.upload_url }}]";
       - name: build
         run: |
