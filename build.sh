@@ -259,7 +259,7 @@ if [[ "$debbuild" == true ]]; then
 
     cd $SRC_DIR/Artifacts
     
-    for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
+    for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$appBranch.$buildname}" ; done
 
     ls -l
     
@@ -281,7 +281,7 @@ if [[ "$extdbuild" == true ]]; then
     echo "** Prepare path";
     tmpName="${releaseName}.${buildname}"
 
-    RELEASE_DIR=$(pwd)/Release/logview_${Major}.${Minor}.${buildnum}_${tmpName,,}
+    RELEASE_DIR=$(pwd)/Release/logview_${Major}.${Minor}.${buildnum}.${appBranch}_${tmpName,,}
     echo $RELEASE_DIR;
 
     rm -rf "${RELEASE_DIR}"
@@ -541,7 +541,7 @@ fi
 
     cd $SRC_DIR/Artifacts
 
-    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}}" ; done
+    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}.${appBranch}}" ; done
 
     ls -l
 
