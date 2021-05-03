@@ -10,7 +10,10 @@
 ### Master branch status (travis-ci)
 [![Build Status](https://travis-ci.org/chipmunk-sm/logview.svg?branch=master)](https://travis-ci.org/chipmunk-sm/logview)
 
-### * Windows release
+### Project status Android (github workflow)
+[![qt5_android](https://github.com/chipmunk-sm/logview/actions/workflows/qt5_android.yml/badge.svg)](https://github.com/chipmunk-sm/logview/actions/workflows/qt5_android.yml)
+
+### * Windows, Linux, Android release:
 https://github.com/chipmunk-sm/logview/releases
 
 ### * Debian packages (.deb)
