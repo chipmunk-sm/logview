@@ -1,14 +1,10 @@
 #!/bin/bash
 
-# ./build.sh -b $TRAVIS_BUILD_NUMBER -c $TRAVIS_COMPILER -o $TRAVIS_OS_NAME -n $TRAVIS_JOB_NAME
-
-# ./build.sh  -c gcc   -d true -o linux -n "Focal.20.04.GCC"   -b 15
-# ./build.sh           -a true -o linux -n "Android"           -b 16
-# ./build.sh  -c clang -e true -o linux -n "Focal.20.04.clang" -b 17
-
+# android
 # ./build.sh -a true
 
-# tar zxf .
+# amd64
+# ./build.sh -d true
 
 #+ colors const
 #    colorGREEN='\033[0;32m'
@@ -16,6 +12,31 @@
 #    colorBLUE='\033[0;34m'
 #    colorDef='\033[0m'
 #~ colors const
+
+
+echo "************************************";
+echo "ls -l $HOME";
+ls -l $HOME;
+echo "************************************";
+echo "ls -l /usr/lib/jvm/";
+ls -l /usr/lib/jvm/;
+echo "************************************";
+echo "ls -l /usr/local/lib/android/sdk";
+ls -l /usr/local/lib/android/sdk;
+echo "************************************";
+echo "ls -l /usr/local/lib/android/sdk/ndk";
+ls -l /usr/local/lib/android/sdk/ndk;
+echo "************************************";
+echo "ls -l /usr/local/lib/android/sdk/ndk";
+ls -l /usr/local/lib/android/sdk/ndk;
+echo "************************************";
+echo "ls -l $HOME/Qt/5.15/";
+ls -l $HOME/Qt/5.15/;
+echo "************************************";
+echo "ls -l $HOME/Qt/5.12/";
+ls -l $HOME/Qt/5.12/;
+echo "************************************";
+
 
 buildnum=$APPVEYOR_BUILD_NUMBER
 if [ -z ${buildnum} ]; then buildnum=$TRAVIS_BUILD_NUMBER; fi
@@ -25,7 +46,16 @@ buildname=$APPVEYOR_JOB_NAME
 if [ -z ${buildname} ]; then buildname=$TRAVIS_JOB_NAME; fi
 
 appBranch=$APPVEYOR_REPO_BRANCH
+if [ -z ${appBranch} ]; then appBranch=$TRAVIS_PULL_REQUEST_BRANCH; fi
+
 if [ -z ${appBranch} ]; then appBranch=$(git rev-parse --abbrev-ref HEAD); fi
+
+# > git clone -q -n --branch=v1.33-ReleaseTest https://github.com/chipmunk-sm/logview.git
+# > cd logview
+# > git checkout -qf v1.33-ReleaseTest
+# > git branch -rq --contains "$(git rev-parse --short HEAD)" --format='%(refname:lstrip=-1)' | tail -1
+# > master
+
 if [[ "$appBranch" == "HEAD" ]]; then appBranch=$(git branch -rq --contains "$(git rev-parse --short HEAD)" --format='%(refname:lstrip=-1)' | tail -1); fi
 #   cut from begin to last /
 #   appBranch="${appBranch/*\//}"

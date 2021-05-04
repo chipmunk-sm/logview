@@ -36,5 +36,8 @@ before_install:
 
 
 script:
--   chmod +x build.sh;
-    ./build.sh ${BUILD_FLAG} true;
+    - echo "TRAVIS_TAG                 [$TRAVIS_TAG]"
+    - echo "TRAVIS_BRANCH              [$TRAVIS_BRANCH]"
+    - echo "TRAVIS_PULL_REQUEST_BRANCH [$TRAVIS_PULL_REQUEST_BRANCH]"
+    - chmod +x build.sh;
+    - ./build.sh ${BUILD_FLAG} true;
