@@ -27,9 +27,9 @@ if [ -z ${buildname} ]; then buildname=$TRAVIS_JOB_NAME; fi
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 
-appBranch=$(git name-rev --name-only HEAD)
-appBranch="$(echo $appBranch | sed 's/^\///;s/\//_/g')"
-appBranch="${appBranch/tags_/}"
+appBranch=$(git branch --show-current)
+# appBranch="$(echo $appBranch | sed 's/^\///;s/\//_/g')"
+# appBranch="${appBranch/tags_/}"
 
 osname=$(uname -s)
 
