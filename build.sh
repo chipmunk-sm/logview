@@ -24,12 +24,17 @@ if [ -z ${buildnum} ]; then buildnum=$GITHUB_RUN_NUMBER; fi
 buildname=$APPVEYOR_JOB_NAME
 if [ -z ${buildname} ]; then buildname=$TRAVIS_JOB_NAME; fi
 
+appBranch=$APPVEYOR_REPO_BRANCH
+if [ -z ${appBranch} ]; then appBranch=$(git rev-parse --abbrev-ref HEAD); fi
+if [[ "$appBranch" == "HEAD" ]]; then appBranch=$(git branch -rq --contains "$(git rev-parse --short HEAD)" --format='%(refname:lstrip=-1)' | tail -1); fi
+#   cut from begin to last /
+#   appBranch="${appBranch/*\//}"
+#   replace / with _
+#   appBranch="$(echo $appBranch | sed 's/^\///;s/\//_/g')"
+
+
 VERSION_CODENAME=$(awk -F= '$1 == "VERSION_CODENAME" {gsub(/"/, "", $2); print $2}' /etc/os-release)
 VERSION_ID=$(awk -F= '$1 == "VERSION_ID" {gsub(/"/, "", $2); print $2}' /etc/os-release)
-
-appBranch=$(git branch --show-current)
-# appBranch="$(echo $appBranch | sed 's/^\///;s/\//_/g')"
-# appBranch="${appBranch/tags_/}"
 
 osname=$(uname -s)
 
@@ -45,6 +50,7 @@ do
         n) buildname=${OPTARG};;
     esac
 done
+
 
 if [ -z ${buildnum} ];       then buildnum=0; fi
 if [ -z ${debbuild+x} ];     then debbuild=false; fi
