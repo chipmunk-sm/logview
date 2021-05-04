@@ -268,7 +268,7 @@ if [[ "$debbuild" == true ]]; then
 
     cd $SRC_DIR/Artifacts
     
-    for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$appBranch.$buildname}" ; done
+    for file in `find -name "*.*deb"`; do mv "$file" "${file/_amd64/_amd64.$buildname}" ; done
 
     ls -l
     
@@ -550,7 +550,7 @@ fi
 
     cd $SRC_DIR/Artifacts
 
-    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}.${appBranch}}" ; done
+    for file in `find -name "*.a*"`; do mv "$file" "${file/android-build/logview_android-${Major}.${Minor}}" ; done
 
     ls -l
 
