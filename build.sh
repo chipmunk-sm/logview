@@ -499,7 +499,6 @@ if ! [ -x "$(command -v $ANDROID_NDK_ROOT/prebuilt/linux-x86_64/bin/make)" ]; th
          if ! [ -f "$HOME/androidndk.zip" ]; then
             echo -e "Valid NDK not found.\nDownload NDK from [$sdkUrl] to [$HOME/androidndk.zip]"
             curl -L -k -s -o "$HOME/androidndk.zip" $sdkUrl;
-
          fi
 
          SHA1ChecksumDownload=$(sha1sum $HOME/androidndk.zip)
