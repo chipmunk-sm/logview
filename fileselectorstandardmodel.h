@@ -133,6 +133,7 @@ public:
     QFont getItemFont() const { return m_itemFont; }
     QString getUserUserPath() const { return m_userUserPath; }
     QString getUserUserFilename() const { return m_userUserFilename; }
+    void ClearRecentLocations();
 
 public slots:
     void setItemHeight(int itemHeight);

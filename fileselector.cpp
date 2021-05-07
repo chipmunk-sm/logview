@@ -9,7 +9,6 @@
 #include "versionhelper.h"
 
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
@@ -45,6 +44,8 @@
 #else
 #   define DEBUGTRACE()
 #endif
+
+#define KEY_GEOMETRY "cfg/KEY_GEOMETRY"
 
 FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QString defaultName, QWidget * parent)
     : QWidget(parent)
@@ -186,12 +187,6 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
         (std::thread(threadWatchdog, this)).detach();
     }
 
-#if defined (Q_OS_ANDROID)
-    resize(QApplication::desktop()->availableGeometry(this).size());
-#else
-    resize(QApplication::desktop()->availableGeometry(this).size() / 2);
-#endif
-
     auto tmpPath = QDir::cleanPath(rootPath);
     if(QFileInfo::exists(tmpPath))
     {
@@ -215,10 +210,33 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
     m_lineEdit->setText(tmpPath);
     m_lineEdit->setFocus();
 
+
+#if defined (Q_OS_ANDROID)
+
+#else
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    const QByteArray restoredGeometry = settings.value(QLatin1String(KEY_GEOMETRY)).toByteArray();
+    if (restoredGeometry.isEmpty() || !restoreGeometry(restoredGeometry))
+    {
+        const QRect availableGeometry = screen()->availableGeometry();
+        const QSize size = (availableGeometry.size() * 4) / 5;
+        resize(size);
+        move(availableGeometry.center() - QPoint(size.width(), size.height()) / 2);
+    }
+#endif
+
 }
 
 FileSelector::~FileSelector()
 {
+#if defined (Q_OS_ANDROID)
+
+#else
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    settings.setValue(QLatin1String(KEY_GEOMETRY), saveGeometry());
+#endif
     shutdown();
 }
 
@@ -585,11 +603,11 @@ void FileSelector::onResetZoom()
     IconHelper::ResetIconSize();
     m_forceUpdateZoom = true;
     QMetaObject::invokeMethod(this, "onUpdateTreeViewStyle");
-#if defined (Q_OS_ANDROID)
-    auto sz = QApplication::desktop()->availableGeometry(this).size();
-    if(sz.width() < width() || sz.height() < height())
-        resize(sz);
-#endif
+//#if defined (Q_OS_ANDROID)
+//    auto sz = QApplication::desktop()->availableGeometry(this).size();
+//    if(sz.width() < width() || sz.height() < height())
+//        resize(sz);
+//#endif
 
 }
 
@@ -623,6 +641,16 @@ void FileSelector::onTextChanged(const QString & path)
     //m_buttonSelect->setVisible(!tmpPath.isEmpty());
 }
 
+void FileSelector::onClearRecentLocations()
+{
+    FileSelectorLocations::ClearRecentLocations();
+
+    auto xModel = qobject_cast<FileSelectorStandardModel*>(m_fileSelector->model());
+    if (xModel)
+        xModel->ClearRecentLocations();
+
+}
+
 void FileSelector::onMenu()
 {
 
@@ -645,12 +673,14 @@ void FileSelector::onMenu()
                 , &QAction::triggered, this, &FileSelector::onResetColumnSize);
 
     auto act = actionsMenu->addAction(m_selectedPath.isEmpty()? QPixmap(":/data/b_open1.1.svg") : QPixmap(":/data/b_open2.1.svg"), tr("Select"));
+
     if(m_selectedPath.isEmpty())
         act->setEnabled(false);
+
     connect(act, &QAction::triggered , this, &FileSelector::onSelectFile);
 
     connect(actionsMenu->addAction(QPixmap(":/data/b_close.1.svg"), tr("Clear recent locations"))
-                , &QAction::triggered, &FileSelectorLocations::ClearRecentLocations);
+                , &QAction::triggered, this, &FileSelector::onClearRecentLocations);
 
     connect(actionsMenu->addAction(QPixmap(":/data/b_close.1.svg"), tr("Quit application"))
                 , &QAction::triggered, this, &FileSelector::shutdown);

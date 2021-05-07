@@ -1,5 +1,6 @@
 /* Copyright (C) 2021 chipmunk-sm <dannico@linuxmail.org> */
 
+#include "fileselectorlocations.h"
 #include "fileselectormodelitem.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -129,11 +130,11 @@ QString FileSelectorModelItem::bytesToString(int64_t val, int64_t base) const
     auto mBytes = kBytes * kBytes;
     auto gBytes = kBytes * mBytes;
 
-    if (val < kBytes)
+    if (static_cast<decltype(kBytes)>(val) < kBytes)
         result = val == 0 ? QString("  0 Bytes  ") : QString("  %1 Bytes  ").arg(val);
-    else if (val < mBytes)
+    else if (static_cast<decltype(mBytes)>(val) < mBytes)
         result = QString("  %1 KB  ").arg(bytesCount / kBytes, 0, 'f', 2);
-    else if (val < gBytes)
+    else if (static_cast<decltype(gBytes)>(val) < gBytes)
         result = QString("  %1 MB  ").arg(bytesCount / mBytes, 0, 'f', 2);
     else
         result = QString("  %1 GB  ").arg(bytesCount / gBytes, 0, 'f', 2);
@@ -148,10 +149,50 @@ FileSelectorModelItem *FileSelectorModelItem::child(int row)
     return m_childItems[static_cast<uint32_t>(row)];
 }
 
-int FileSelectorModelItem::fetchChild()
+int FileSelectorModelItem::fetchChild(bool reload)
 {
-    if (m_fM->IsRepaint() || m_locationId != eLocations::eLocations_None)
+    if (m_locationId == eLocations::eLocations_folder_recent)
+    {
+        qDeleteAll(m_childItems);
+        m_childItems.clear();
+
+        std::vector<std::pair<eLocations, std::vector<QString>>> locationsList;
+        FileSelectorLocations::GetRecentLocations(locationsList);
+
+        if(locationsList.size() > 0)
+        {
+            const auto & xRecent = locationsList.front().second;
+            for (decltype(xRecent.size()) recentIndex = 0; recentIndex < xRecent.size(); recentIndex++) {
+
+                auto itemPtr = new FileSelectorModelItem(this, m_fM);
+
+                itemPtr->m_itemName = xRecent[recentIndex];
+                auto newTmpPath = xRecent[recentIndex];
+                itemPtr->m_Path = QDir::toNativeSeparators(QDir(newTmpPath).absolutePath());
+
+                struct stat64 flstat{};
+                auto retcode = stat64(itemPtr->m_Path.toStdString().c_str(), &flstat);
+                if (retcode != 0) // error
+                    continue;
+
+                if S_ISREG(flstat.st_mode){
+                    itemPtr->m_fileSizeBytes = flstat.st_size;
+                    itemPtr->m_isDir = false;
+                }else{
+                    continue;
+                }
+
+                itemPtr->m_filetime = flstat.st_mtime;
+
+                m_childItems.emplace_back(itemPtr);
+            }
+        }
         return static_cast<int32_t>(m_childItems.size());
+    }
+
+    if (!reload && (m_fM->IsRepaint() || m_locationId != eLocations::eLocations_None))
+        return static_cast<int32_t>(m_childItems.size());
+
 
     if (!m_isDir)
         return 0;
@@ -437,8 +478,7 @@ bool FileSelectorModelItem::hasChildren(const QModelIndex &)
     if (m_locationId != eLocations::eLocations_None)
         return true;
 
-    const auto hasChild = fetchChild() > 0;
-    //const auto hasChild = rowCount(parent, true) > 0;
+    const auto hasChild = fetchChild(false) > 0;
     return hasChild;
 }
 
@@ -558,7 +598,7 @@ QString FileSelectorModelItem::getItemDate() const
     if (stat64(m_Path.toStdString().c_str(), &flstat) != 0)
         return QString();
 #endif
-    auto dt = QDateTime::fromTime_t(static_cast<uint>(flstat.st_mtime));
+    QDateTime dt = QDateTime::fromSecsSinceEpoch(static_cast<uint>(flstat.st_mtime));
 
     return QLatin1String("  ") +
             QLocale().toString(dt, QLocale::ShortFormat) +

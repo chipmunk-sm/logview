@@ -38,6 +38,7 @@ private slots:
     void onResetColumnSize();
     void onTextChanged(const QString &path);
     void onMenu();
+    void onClearRecentLocations();
 
 private:
     void closeEvent(QCloseEvent *e) override;

@@ -15,6 +15,8 @@
 //QStandardPaths::AppDataLocation
 //QStandardPaths::AppConfigLocation
 
+#if (QT_VERSION_MAJOR < 6)
+
 #define THEMEICON()\
     MACRODEF(None, QObject::tr(""), static_cast<QStandardPaths::StandardLocation>(-1))\
     MACRODEF(Root, QObject::tr(""), static_cast<QStandardPaths::StandardLocation>(-1))\
@@ -38,6 +40,33 @@
     MACRODEF(folder_externalsd, QObject::tr("External SD"),      static_cast<QStandardPaths::StandardLocation>(-1))\
     \
     MACRODEF(folder_drive,      QObject::tr("Storage"), static_cast<QStandardPaths::StandardLocation>(-1))\
+
+#else
+
+#define THEMEICON()\
+    MACRODEF(None, QObject::tr(""), static_cast<QStandardPaths::StandardLocation>(-1))\
+    MACRODEF(Root, QObject::tr(""), static_cast<QStandardPaths::StandardLocation>(-1))\
+    \
+    MACRODEF(folder_recent,     QObject::tr("Recent"),           static_cast<QStandardPaths::StandardLocation>(-2))\
+    MACRODEF(folder_documents,  QObject::tr("Documents"),        QStandardPaths::DocumentsLocation)\
+    MACRODEF(folder_download,   QObject::tr("Download") ,        QStandardPaths::DownloadLocation)\
+    MACRODEF(folder_music,      QObject::tr("Music")    ,        QStandardPaths::MusicLocation)\
+    MACRODEF(folder_videos,     QObject::tr("Videos")   ,        QStandardPaths::MoviesLocation)\
+    MACRODEF(folder_pictures,   QObject::tr("Pictures") ,        QStandardPaths::PicturesLocation)\
+    \
+    MACRODEF(folder_temp,       QObject::tr("Temp location"),    QStandardPaths::TempLocation)\
+    MACRODEF(folder_config,     QObject::tr("Config location"),  QStandardPaths::ConfigLocation)\
+    MACRODEF(folder_generic,    QObject::tr("Generic location"), QStandardPaths::GenericDataLocation)\
+    \
+    MACRODEF(folder_desktop,    QObject::tr("Desktop"),          QStandardPaths::DesktopLocation)\
+    MACRODEF(folder_home,       QObject::tr("Home"),             QStandardPaths::HomeLocation)\
+    \
+    MACRODEF(folder_internalsd, QObject::tr("Internal memory"),  static_cast<QStandardPaths::StandardLocation>(-1))\
+    MACRODEF(folder_externalsd, QObject::tr("External SD"),      static_cast<QStandardPaths::StandardLocation>(-1))\
+    \
+    MACRODEF(folder_drive,      QObject::tr("Storage"), static_cast<QStandardPaths::StandardLocation>(-1))\
+
+#endif
 
 enum class eLocations
 {

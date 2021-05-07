@@ -45,7 +45,7 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
                 if(!tmpRoot)
                     continue;
 
-                tmpRoot->fetchChild();
+                tmpRoot->fetchChild(false);
                 //qDebug() << "Root " << tmpRoot->getItemName();
 
                 for (int L1 = 0; L1 < tmpRoot->childCount(false); L1++) {
@@ -54,7 +54,7 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
                     if(!tmpL1)
                         continue;
 
-                    tmpL1->fetchChild();
+                    tmpL1->fetchChild(false);
                     //qDebug() << "  L1 " << tmpL1->getItemName();
 
                     if (!tmpL1->isDir()) {
@@ -107,6 +107,34 @@ QIcon FileSelectorStandardModel::dataImg(const QModelIndex &index)
         return m_icon.GetDirIcon();
 
     return m_icon.GetIconForFile(item->getPath());
+}
+
+void FileSelectorStandardModel::ClearRecentLocations()
+{
+    auto pThis = this;
+    //auto threadBase = [](FileSelectorStandardModel* pThis)
+    //{
+        try
+        {
+            for (int ind = 0; ind < pThis->m_root->childCount(false); ind++) {
+                auto tmpRoot = pThis->m_root->child(ind);
+                if(!tmpRoot)
+                    continue;
+
+                tmpRoot->fetchChild(true);
+                if(tmpRoot->getLocationId() != eLocations::eLocations_folder_recent)
+                    continue;
+
+                qDebug() << "Root " << tmpRoot->getItemName();
+            }
+        }
+        catch(...)
+        {
+
+        }
+    //};
+    //(std::thread(threadBase, this)).detach();
+
 }
 
 void FileSelectorStandardModel::setItemHeight(int itemHeight)
@@ -189,7 +217,7 @@ int FileSelectorStandardModel::rowCount(const QModelIndex &parent = QModelIndex(
 {
     if (parent.column() > 0)
         return 0;
-    return getItem(parent)->fetchChild();
+    return getItem(parent)->fetchChild(false);
 }
 
 QVariant FileSelectorStandardModel::data(const QModelIndex &index, int role) const

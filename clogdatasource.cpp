@@ -365,21 +365,19 @@ QString CLogDatasource::getLogLine(int64_t indRow) const
 
     if (m_bUtf32)
     {
-        auto charCount = static_cast<int32_t>(res) / static_cast<int32_t>(sizeof(uint32_t));
-        return QString::fromUcs4(reinterpret_cast<const uint32_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
+        auto charCount = static_cast<char32_t>(res) / static_cast<char32_t>(sizeof(char32_t));
+        return QString::fromUcs4(reinterpret_cast<const char32_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
     }
     else if (m_bUtf16)
     {
-        auto charCount = static_cast<int32_t>(res) / static_cast<int32_t>(sizeof(uint16_t));
-        return QString::fromUtf16(reinterpret_cast<const uint16_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
+        auto charCount = static_cast<char32_t>(res) / static_cast<char32_t>(sizeof(char16_t));
+        return QString::fromUtf16(reinterpret_cast<const char16_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
     }
     else
     {
         auto charCount = static_cast<int32_t>(res);
         return QString::fromUtf8(reinterpret_cast<const char*>(ptr), charCount).replace('\n', "").replace('\r', "");
     }
-
-    return QString();
 }
 
 int64_t CLogDatasource::getLogLineCount() const

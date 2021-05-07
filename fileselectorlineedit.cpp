@@ -7,7 +7,7 @@
 #include <QCompleter>
 #include <QFileSystemModel>
 //#include <QFileSystemModel>
-#include <QDirModel>
+
 
 FileSelectorLineEdit::FileSelectorLineEdit(QWidget *parent)
     : QLineEdit(parent)

@@ -110,7 +110,7 @@ QVariant LogViewModel::data(const QModelIndex &index, int role) const
     {
         auto indRow = index.row() + m_scrollbarPosition;
         auto returnString = dataEx(indRow);
-#if QT_VERSION_MAJOR >=5 && QT_VERSION_MINOR >= 11
+#if (QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 11) || QT_VERSION_MAJOR >= 6
         setColumnWidth(m_fontMetrics.horizontalAdvance(returnString));
 #else
         setColumnWidth(m_fontMetrics.width(returnString));
