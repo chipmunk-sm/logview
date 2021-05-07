@@ -170,8 +170,13 @@ int FileSelectorModelItem::fetchChild()
                 auto newTmpPath = xRecent[recentIndex];
                 itemPtr->m_Path = QDir::toNativeSeparators(QDir(newTmpPath).absolutePath());
 
+#if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
+                struct __stat64 flstat;
+                auto retcode = _wstat64(itemPtr->m_Path.toStdWString().c_str(), &flstat);
+#else
                 struct stat64 flstat{};
                 auto retcode = stat64(itemPtr->m_Path.toStdString().c_str(), &flstat);
+#endif
                 if (retcode != 0) // error
                     continue;
 
@@ -202,8 +207,8 @@ int FileSelectorModelItem::fetchChild()
     if (basePath.isEmpty())
         return static_cast<int32_t>(m_childItems.size());
 
-    if (m_childItems.size() > 500)
-        return static_cast<int32_t>(m_childItems.size());
+//    if (m_childItems.size() > 500)
+//        return static_cast<int32_t>(m_childItems.size());
 
 #ifdef SPEEDTEST
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -340,10 +345,10 @@ int FileSelectorModelItem::fetchChild()
         if (strcmp(dirEntry->d_name, ".") == 0 || strcmp(dirEntry->d_name, "..") == 0)
             continue;
 
-        std::string tmpId(dirEntry->d_name);
-        if (m_childItemsMap.find(tmpId) == m_childItemsMap.end())
+        if (m_childItemsMap.find(dirEntry->d_name) == m_childItemsMap.end())
         {
-            m_childItemsMap[tmpId] = true;
+
+            m_childItemsMap[dirEntry->d_name] = true;
 
             auto itemPtr = new FileSelectorModelItem(this, m_fM);
             itemPtr->m_itemName = QString::fromUtf8(dirEntry->d_name);
