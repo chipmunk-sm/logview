@@ -242,7 +242,11 @@ LogViewWidget::LogViewWidget(QString windowTitle, QString fileName)
     const QByteArray restoredGeometry = settings.value(QLatin1String(KEY_GEOMETRY)).toByteArray();
     if (restoredGeometry.isEmpty() || !restoreGeometry(restoredGeometry))
     {
+#if (QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 15) || QT_VERSION_MAJOR >= 6
         const QRect availableGeometry = screen()->availableGeometry();
+#else
+        const QRect availableGeometry = QApplication::desktop()->availableGeometry();
+#endif
         const QSize size = (availableGeometry.size() * 4) / 5;
         resize(size);
         move(availableGeometry.center() - QPoint(size.width(), size.height()) / 2);

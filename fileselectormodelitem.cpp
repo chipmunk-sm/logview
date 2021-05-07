@@ -173,14 +173,16 @@ int FileSelectorModelItem::fetchChild()
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
                 struct __stat64 flstat;
                 auto retcode = _wstat64(itemPtr->m_Path.toStdWString().c_str(), &flstat);
+                bool isReg = _S_IFREG(flstat.st_mode);
 #else
                 struct stat64 flstat{};
                 auto retcode = stat64(itemPtr->m_Path.toStdString().c_str(), &flstat);
+                bool isReg = S_ISREG(flstat.st_mode);
 #endif
                 if (retcode != 0) // error
                     continue;
 
-                if S_ISREG(flstat.st_mode){
+                if (isReg){
                     itemPtr->m_fileSizeBytes = flstat.st_size;
                     itemPtr->m_isDir = false;
                 }else{
