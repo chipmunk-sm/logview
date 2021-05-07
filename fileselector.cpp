@@ -23,6 +23,7 @@
 #include <QToolBar>
 #include <QSettings>
 #include <QTreeView>
+#include <QScreen>
 
 #include <thread>
 #include <cmath>
