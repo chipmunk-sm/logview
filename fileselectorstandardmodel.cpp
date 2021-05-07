@@ -36,6 +36,7 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
             itemPtr->appendChild(nativePath, nativePath);
         }
     }
+
     auto threadBase = [](FileSelectorStandardModel* pThis)
     {
         try
@@ -45,7 +46,7 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
                 if(!tmpRoot)
                     continue;
 
-                tmpRoot->fetchChild(false);
+                tmpRoot->fetchChild();
                 //qDebug() << "Root " << tmpRoot->getItemName();
 
                 for (int L1 = 0; L1 < tmpRoot->childCount(false); L1++) {
@@ -54,7 +55,7 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
                     if(!tmpL1)
                         continue;
 
-                    tmpL1->fetchChild(false);
+                    tmpL1->fetchChild();
                     //qDebug() << "  L1 " << tmpL1->getItemName();
 
                     if (!tmpL1->isDir()) {
@@ -111,29 +112,27 @@ QIcon FileSelectorStandardModel::dataImg(const QModelIndex &index)
 
 void FileSelectorStandardModel::ClearRecentLocations()
 {
-    auto pThis = this;
-    //auto threadBase = [](FileSelectorStandardModel* pThis)
-    //{
+    //auto pThis = this;
+    auto threadBase = [](FileSelectorStandardModel* pThis)
+    {
         try
         {
             for (int ind = 0; ind < pThis->m_root->childCount(false); ind++) {
                 auto tmpRoot = pThis->m_root->child(ind);
                 if(!tmpRoot)
                     continue;
-
-                tmpRoot->fetchChild(true);
-                if(tmpRoot->getLocationId() != eLocations::eLocations_folder_recent)
-                    continue;
-
-                qDebug() << "Root " << tmpRoot->getItemName();
+                tmpRoot->fetchChild();
+//                if(tmpRoot->getLocationId() == eLocations::eLocations_folder_recent)
+//                    continue;
+//                qDebug() << "Root " << tmpRoot->getItemName();
             }
         }
         catch(...)
         {
 
         }
-    //};
-    //(std::thread(threadBase, this)).detach();
+    };
+    (std::thread(threadBase, this)).detach();
 
 }
 
@@ -217,7 +216,7 @@ int FileSelectorStandardModel::rowCount(const QModelIndex &parent = QModelIndex(
 {
     if (parent.column() > 0)
         return 0;
-    return getItem(parent)->fetchChild(false);
+    return getItem(parent)->fetchChild();
 }
 
 QVariant FileSelectorStandardModel::data(const QModelIndex &index, int role) const

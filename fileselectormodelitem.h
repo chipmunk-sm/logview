@@ -29,7 +29,7 @@ public:
     void appendChild(const QString & name, const QString & path);
     QString bytesToString(int64_t val, int64_t base = 1024) const;
     FileSelectorModelItem *child(int row);
-    int fetchChild(bool reload);
+    int fetchChild();
     int childCount(bool firstChildOnly);
     int row() const;
     bool hasChildren(const QModelIndex &parent);

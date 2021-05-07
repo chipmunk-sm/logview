@@ -149,7 +149,7 @@ FileSelectorModelItem *FileSelectorModelItem::child(int row)
     return m_childItems[static_cast<uint32_t>(row)];
 }
 
-int FileSelectorModelItem::fetchChild(bool reload)
+int FileSelectorModelItem::fetchChild()
 {
     if (m_locationId == eLocations::eLocations_folder_recent)
     {
@@ -190,7 +190,7 @@ int FileSelectorModelItem::fetchChild(bool reload)
         return static_cast<int32_t>(m_childItems.size());
     }
 
-    if (!reload && (m_fM->IsRepaint() || m_locationId != eLocations::eLocations_None))
+    if (m_fM->IsRepaint() || m_locationId != eLocations::eLocations_None)
         return static_cast<int32_t>(m_childItems.size());
 
 
@@ -478,7 +478,7 @@ bool FileSelectorModelItem::hasChildren(const QModelIndex &)
     if (m_locationId != eLocations::eLocations_None)
         return true;
 
-    const auto hasChild = fetchChild(false) > 0;
+    const auto hasChild = fetchChild() > 0;
     return hasChild;
 }
 
