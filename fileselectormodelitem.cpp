@@ -70,6 +70,10 @@ QDateTime DatetimeFromFiletime(int64_t filetime)
 
 #endif
 
+#ifndef S_ISREG
+#define	S_ISREG(mode)	(((mode) & _S_IFREG) == _S_IFREG)
+#endif
+
 FileSelectorModelItem::FileSelectorModelItem(FileSelectorModelItem *parentItem, FileSelectorStandardModel *fileSelectorStandardModel, eLocations m_locationId)
     : m_parentItem(parentItem)
     , m_fM(fileSelectorStandardModel)
@@ -173,15 +177,14 @@ int FileSelectorModelItem::fetchChild()
 #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
                 struct __stat64 flstat;
                 auto retcode = _wstat64(itemPtr->m_Path.toStdWString().c_str(), &flstat);
-                bool isReg = _S_IFREG(flstat.st_mode);
 #else
                 struct stat64 flstat{};
                 auto retcode = stat64(itemPtr->m_Path.toStdString().c_str(), &flstat);
-                bool isReg = S_ISREG(flstat.st_mode);
 #endif
                 if (retcode != 0) // error
                     continue;
 
+                bool isReg = S_ISREG(flstat.st_mode);
                 if (isReg){
                     itemPtr->m_fileSizeBytes = flstat.st_size;
                     itemPtr->m_isDir = false;
