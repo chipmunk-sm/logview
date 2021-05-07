@@ -24,6 +24,9 @@
 #include <QSettings>
 #include <QTreeView>
 #include <QScreen>
+#if !((QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 15) || QT_VERSION_MAJOR >= 6)
+#include <QDesktopWidget>
+#endif
 
 #include <thread>
 #include <cmath>
