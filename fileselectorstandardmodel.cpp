@@ -10,22 +10,16 @@
 #include <QHeaderView>
 #include <thread>
 
-#ifndef LOG_ERROR_A
-#   ifndef QDEBUG_H
-#      include <QDebug>
-#   endif
-#   define LOG_ERROR_A(mess) qFatal("%s", mess)
-#   define LOG_WARNING_A(mess) qWarning("%s", mess)
-#endif // LOG_ERROR_A
-
 
 FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
     : QAbstractItemModel(parent)
-    , m_root(new FileSelectorModelItem(nullptr, this, eLocations::eLocations_Root))
+    , m_root(new FileSelectorModelItem(nullptr, eLocations::eLocations_Root))
 {
 
     std::vector<std::pair<eLocations, std::vector<QString>>> locationsList;
     FileSelectorLocations::getRootPathList(locationsList, false);
+
+    connect(this, &FileSelectorStandardModel::rowDataChanged, this, &FileSelectorStandardModel::rowDataChange);
 
     for (auto & number : locationsList)
     {
@@ -37,50 +31,6 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
         }
     }
 
-    auto threadBase = [](FileSelectorStandardModel* pThis)
-    {
-        try
-        {
-            for (int ind = 0; ind < pThis->m_root->childCount(false); ind++) {
-                auto tmpRoot = pThis->m_root->child(ind);
-                if(!tmpRoot)
-                    continue;
-
-                tmpRoot->fetchChild();
-                //qDebug() << "Root " << tmpRoot->getItemName();
-
-                for (int L1 = 0; L1 < tmpRoot->childCount(false); L1++) {
-
-                    auto tmpL1 = tmpRoot->child(L1);
-                    if(!tmpL1)
-                        continue;
-
-                    tmpL1->fetchChild();
-                    //qDebug() << "  L1 " << tmpL1->getItemName();
-
-                    if (!tmpL1->isDir()) {
-                        pThis->m_icon.GetIconForFile(tmpL1->getPath());
-                        continue;
-                    }
-                    auto countL2 = std::min<int>(100, tmpL1->childCount(false));
-                    for (int L2 = 0; L2 < countL2; L2++) {
-                        auto tmpL2 = tmpL1->child(L2);
-                        if(!tmpL2)
-                            continue;
-                        //qDebug() << "    L2 " << tmpL2->getItemName();
-
-                        if (!tmpL2->isDir())
-                            pThis->m_icon.GetIconForFile(tmpL2->getPath());
-                    }
-                }
-            }
-        }
-        catch(...)
-        {
-
-        }
-    };
-    (std::thread(threadBase, this)).detach();
 }
 
 FileSelectorStandardModel::~FileSelectorStandardModel()
@@ -108,32 +58,6 @@ QIcon FileSelectorStandardModel::dataImg(const QModelIndex &index)
         return m_icon.GetDirIcon();
 
     return m_icon.GetIconForFile(item->getPath());
-}
-
-void FileSelectorStandardModel::ClearRecentLocations()
-{
-    //auto pThis = this;
-    auto threadBase = [](FileSelectorStandardModel* pThis)
-    {
-        try
-        {
-            for (int ind = 0; ind < pThis->m_root->childCount(false); ind++) {
-                auto tmpRoot = pThis->m_root->child(ind);
-                if(!tmpRoot)
-                    continue;
-                tmpRoot->fetchChild();
-//                if(tmpRoot->getLocationId() == eLocations::eLocations_folder_recent)
-//                    continue;
-//                qDebug() << "Root " << tmpRoot->getItemName();
-            }
-        }
-        catch(...)
-        {
-
-        }
-    };
-    (std::thread(threadBase, this)).detach();
-
 }
 
 void FileSelectorStandardModel::setItemHeight(int itemHeight)
@@ -172,6 +96,36 @@ void FileSelectorStandardModel::setUserUserFilename(QString userUserFilename)
     emit userUserFilenameChanged(m_userUserFilename);
 }
 
+void FileSelectorStandardModel::onRowDataChange(const QModelIndex &parent)
+{
+    auto items = getItem(parent);
+     if(!items)
+         return;
+
+     emit layoutAboutToBeChanged();
+
+     for (int index = 0; index < static_cast<int>(items->m_childItems.size()); index++)
+     {
+         if(items->m_childItems[static_cast<uint>(index)]->getState() == FileSelectorModelItem::StateType::StateType_unknown)
+         {
+             beginRemoveRows(parent, index, index + 1);
+             delete items->m_childItems[static_cast<uint>(index)];
+             items->m_childItems[static_cast<uint>(index)] = nullptr;
+             items->m_childItems.erase(items->m_childItems.begin() + index);
+             endRemoveRows();
+             index--;
+             continue;
+         }
+     }
+
+     emit layoutChanged();
+}
+
+void FileSelectorStandardModel::rowDataChange(const QModelIndex &parent)
+{
+    QMetaObject::invokeMethod(this, "onRowDataChange", Qt::QueuedConnection, Q_ARG(QModelIndex, parent));
+}
+
 QHash<int, QByteArray> FileSelectorStandardModel::roleNames() const
 {
     static const QHash<int, QByteArray> roles
@@ -187,7 +141,6 @@ QHash<int, QByteArray> FileSelectorStandardModel::roleNames() const
 
 QVariant FileSelectorStandardModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    //DEBUGTRACE();
     if (Qt::DisplayRole == Qt::ItemDataRole(role))
     {
         switch (section)
@@ -203,7 +156,9 @@ QVariant FileSelectorStandardModel::headerData(int section, Qt::Orientation orie
 
 Qt::ItemFlags FileSelectorStandardModel::flags(const QModelIndex &index) const
 {
-    //DEBUGTRACE();
+    if (!index.isValid())
+        return Qt::NoItemFlags;
+
     return QAbstractItemModel::flags(index);
 }
 
@@ -216,12 +171,17 @@ int FileSelectorStandardModel::rowCount(const QModelIndex &parent = QModelIndex(
 {
     if (parent.column() > 0)
         return 0;
-    return getItem(parent)->fetchChild();
+
+    auto item = getItem(parent);
+    if(!item)
+        return 0;
+
+    auto itemCount = item->fetchChild(parent);
+    return itemCount;
 }
 
 QVariant FileSelectorStandardModel::data(const QModelIndex &index, int role) const
 {
-    //DEBUGTRACE();
     if (!index.isValid())
         return QVariant();
 
@@ -286,8 +246,11 @@ QVariant FileSelectorStandardModel::data(const QModelIndex &index, int role) con
 
 QModelIndex FileSelectorStandardModel::index(int row, int column, const QModelIndex &parent = QModelIndex()) const
 {
-    if (!hasIndex(row, column, parent))
+    if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
+
+//    if (!hasIndex(row, column, parent))
+//        return QModelIndex();
 
     auto item = getItem(parent)->child(row);
     if (item)
@@ -296,23 +259,42 @@ QModelIndex FileSelectorStandardModel::index(int row, int column, const QModelIn
     return QModelIndex();
 }
 
-QModelIndex FileSelectorStandardModel::parent(const QModelIndex &index) const
+QModelIndex FileSelectorStandardModel::parent(const QModelIndex &child) const
 {
-    if (!index.isValid())
+    if (!child.isValid())
         return QModelIndex();
 
-    auto *parentItem = getItem(index)->getParentItem();
+    auto *parentItem = getItem(child)->getParentItem();
     if (parentItem == m_root)
         return QModelIndex();
 
-    return createIndex(parentItem->row(), 0, parentItem);
+    auto parentItem1 = parentItem->getParentItem();
+    if (parentItem1 == nullptr)
+        return QModelIndex();
+
+    auto rowIndex = 0;
+    auto ptr = parentItem1->m_childItems.data();
+    const auto elementCount = static_cast<int32_t>(parentItem1->m_childItems.size());
+    for (int ind = 0; ind < elementCount; ind++){
+        if (*ptr++ == parentItem){
+            rowIndex = ind;
+            break;
+        }
+    }
+    return createIndex(rowIndex, 0, parentItem);
 }
 
 bool FileSelectorStandardModel::hasChildren(const QModelIndex &parent) const
 {
     if (parent.column() > 0)
         return false;
-    return getItem(parent)->hasChildren(parent);
+
+    auto item = getItem(parent);
+    if (!item)
+        return false;
+
+    auto itemCount = item->fetchChild(parent);
+    return itemCount > 0;
 }
 
 FileSelectorModelItem *FileSelectorStandardModel::getItem(const QModelIndex &index) const
@@ -322,6 +304,7 @@ FileSelectorModelItem *FileSelectorStandardModel::getItem(const QModelIndex &ind
         auto *item = static_cast<FileSelectorModelItem*>(index.internalPointer());
         if (item)
             return item;
+        return nullptr;
     }
     return m_root;
 }

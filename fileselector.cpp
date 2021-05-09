@@ -577,19 +577,11 @@ void FileSelector::onUpdateTreeViewStyle()
 
     m_forceUpdateZoom = false;
 
-    auto xModel = qobject_cast<FileSelectorStandardModel*>(m_fileSelector->model());
-    if (xModel)
-        xModel->RepaintMode(true);
-
     updateTreeViewStyle(IconHelper::GetIconSize(m_default_Font, m_scale));
 
     toolTip();
 
     m_scale = 0;
-
-    if (xModel)
-        xModel->RepaintMode(false);
-
 }
 
 void FileSelector::watchdogThread()
@@ -653,11 +645,7 @@ void FileSelector::onTextChanged(const QString & path)
 void FileSelector::onClearRecentLocations()
 {
     FileSelectorLocations::ClearRecentLocations();
-
-    auto xModel = qobject_cast<FileSelectorStandardModel*>(m_fileSelector->model());
-    if (xModel)
-        xModel->ClearRecentLocations();
-
+    m_fileSelector->update();
 }
 
 void FileSelector::onMenu()

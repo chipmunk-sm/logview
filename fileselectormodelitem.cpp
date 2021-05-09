@@ -13,13 +13,18 @@
 #   include <sys/stat.h>
 #   include <sys/types.h>
 
-#if (defined(_WIN32) || defined(_WIN64)) && !defined(S_ISDIR)
+#if !defined(S_ISDIR)
 #   define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
+#endif
+
+#if !defined(S_ISREG)
+#   define S_ISREG(mode) (((mode) & _S_IFREG) == _S_IFREG)
 #endif
 
 #include <QCollator>
 #include <QDateTime>
 #include <QDir>
+#include <ctime>
 
 #include <thread>
 #include <algorithm>
@@ -36,7 +41,7 @@
 #   define LOG_WARNING_A(mess) qWarning("%s", mess)
 #endif // LOG_ERROR_A
 
-#if 1
+#if 0
 #   ifndef QDEBUG_H
 #      include <QDebug>
 #   endif
@@ -70,13 +75,8 @@ QDateTime DatetimeFromFiletime(int64_t filetime)
 
 #endif
 
-#ifndef S_ISREG
-#define	S_ISREG(mode)	(((mode) & _S_IFREG) == _S_IFREG)
-#endif
-
-FileSelectorModelItem::FileSelectorModelItem(FileSelectorModelItem *parentItem, FileSelectorStandardModel *fileSelectorStandardModel, eLocations m_locationId)
+FileSelectorModelItem::FileSelectorModelItem(FileSelectorModelItem *parentItem, eLocations m_locationId)
     : m_parentItem(parentItem)
-    , m_fM(fileSelectorStandardModel)
     , m_locationId(m_locationId)
 {
 }
@@ -93,7 +93,7 @@ int FileSelectorModelItem::columnCount() const
 
 FileSelectorModelItem *FileSelectorModelItem::appendChild(eLocations locationId)
 {
-    auto itemPtr = new FileSelectorModelItem(this, m_fM);
+    auto itemPtr = new FileSelectorModelItem(this);
     itemPtr->m_itemName = LocationsEnum::GetLocationName(locationId);
     itemPtr->m_locationId = locationId;
     m_childItems.emplace_back(itemPtr);
@@ -110,20 +110,31 @@ void FileSelectorModelItem::appendChild(const QString &name, const QString &path
         return;
 
 #else
-
     struct stat64 flstat{};
     if (stat64(path.toStdString().c_str(), &flstat) != 0)
         return;
 
 #endif
 
-    auto itemPtr = new FileSelectorModelItem(this, m_fM);
+    for (decltype(m_childItems.size()) index = 0; index < m_childItems.size(); index++) {
+        if(m_childItems[index]->m_itemName == name) {
+            auto itemPtr = m_childItems[index];
+            itemPtr->m_state = (itemPtr->m_fileSizeBytes != flstat.st_size || itemPtr->m_filetime != flstat.st_mtime) ?
+                        FileSelectorModelItem::StateType::StateType_update : FileSelectorModelItem::StateType::StateType_valid;
+            itemPtr->m_fileSizeBytes = flstat.st_size;
+            itemPtr->m_filetime = flstat.st_mtime;
+            return;
+        }
+    }
+
+    auto itemPtr = new FileSelectorModelItem(this);
     itemPtr->m_itemName = name;
     itemPtr->m_Path = path;
     itemPtr->m_isDir = S_ISDIR(flstat.st_mode);
-
+    itemPtr->m_fileSizeBytes = flstat.st_size;
+    itemPtr->m_filetime = flstat.st_mtime;
+    itemPtr->m_state = FileSelectorModelItem::StateType::StateType_new;
     m_childItems.emplace_back(itemPtr);
-
 }
 
 QString FileSelectorModelItem::bytesToString(int64_t val, int64_t base) const
@@ -146,63 +157,36 @@ QString FileSelectorModelItem::bytesToString(int64_t val, int64_t base) const
     return result;
 }
 
-FileSelectorModelItem *FileSelectorModelItem::child(int row)
+FileSelectorModelItem *FileSelectorModelItem::child(int row) const
 {
+
     if (row < 0 || row >= static_cast<int32_t>(m_childItems.size()))
         return nullptr;
     return m_childItems[static_cast<uint32_t>(row)];
 }
 
-int FileSelectorModelItem::fetchChild()
+int FileSelectorModelItem::fetchChild(const QModelIndex &parent)
 {
-    if (m_locationId == eLocations::eLocations_folder_recent)
-    {
-        qDeleteAll(m_childItems);
-        m_childItems.clear();
 
+    if (getLocationId() == eLocations::eLocations_folder_recent)
+    {
         std::vector<std::pair<eLocations, std::vector<QString>>> locationsList;
         FileSelectorLocations::GetRecentLocations(locationsList);
-
+        for (int index = 0; index < static_cast<int>(m_childItems.size()); index++)
+            m_childItems[static_cast<uint>(index)]->setState(FileSelectorModelItem::StateType::StateType_unknown);
         if(locationsList.size() > 0)
         {
-            const auto & xRecent = locationsList.front().second;
-            for (decltype(xRecent.size()) recentIndex = 0; recentIndex < xRecent.size(); recentIndex++) {
-
-                auto itemPtr = new FileSelectorModelItem(this, m_fM);
-
-                itemPtr->m_itemName = xRecent[recentIndex];
-                auto newTmpPath = xRecent[recentIndex];
-                itemPtr->m_Path = QDir::toNativeSeparators(QDir(newTmpPath).absolutePath());
-
-#if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
-                struct __stat64 flstat;
-                auto retcode = _wstat64(itemPtr->m_Path.toStdWString().c_str(), &flstat);
-#else
-                struct stat64 flstat{};
-                auto retcode = stat64(itemPtr->m_Path.toStdString().c_str(), &flstat);
-#endif
-                if (retcode != 0) // error
-                    continue;
-
-                bool isReg = S_ISREG(flstat.st_mode);
-                if (isReg){
-                    itemPtr->m_fileSizeBytes = flstat.st_size;
-                    itemPtr->m_isDir = false;
-                }else{
-                    continue;
-                }
-
-                itemPtr->m_filetime = flstat.st_mtime;
-
-                m_childItems.emplace_back(itemPtr);
+            const auto & xRecentList = locationsList.front().second;
+            for (const auto & tmpName : xRecentList) {
+                appendChild(tmpName, tmpName);
             }
         }
-        return static_cast<int32_t>(m_childItems.size());
+        testChild(parent);
+        return static_cast<int>(m_childItems.size());
     }
 
-    if (m_fM->IsRepaint() || m_locationId != eLocations::eLocations_None)
-        return static_cast<int32_t>(m_childItems.size());
-
+    if (getLocationId() != eLocations::eLocations_None)
+        return static_cast<int>(m_childItems.size());
 
     if (!m_isDir)
         return 0;
@@ -210,16 +194,23 @@ int FileSelectorModelItem::fetchChild()
     const auto basePath = getPath();
 
     if (basePath.isEmpty())
-        return static_cast<int32_t>(m_childItems.size());
+        return static_cast<int>(m_childItems.size());
 
-//    if (m_childItems.size() > 500)
-//        return static_cast<int32_t>(m_childItems.size());
+    time_t nowtime = time(nullptr);
+    auto diffsec = nowtime - m_lasttime;
 
+    if (m_lasttime != 0 && diffsec < 2)
+    {
+        m_lasttime = nowtime;
+        return static_cast<int>(m_childItems.size());
+    }
+
+    m_lasttime = nowtime;
+
+//#define SPEEDTEST
 #ifdef SPEEDTEST
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 #endif // SPEEDTEST
-
-    int32_t newItem = 0;
 
 #if defined(USESTDFILESYSTEM)
 
@@ -343,164 +334,51 @@ int FileSelectorModelItem::fetchChild()
     if (dir == nullptr)
         return 0;
 
-    struct dirent *dirEntry;
+    for (int index = 0; index < static_cast<int>(m_childItems.size()); index++)
+        m_childItems[static_cast<uint>(index)]->setState(FileSelectorModelItem::StateType::StateType_unknown);
 
+    struct dirent *dirEntry;
     while ((dirEntry = ::readdir(dir)) != nullptr)
     {
         if (strcmp(dirEntry->d_name, ".") == 0 || strcmp(dirEntry->d_name, "..") == 0)
             continue;
 
-        if (m_childItemsMap.find(dirEntry->d_name) == m_childItemsMap.end())
-        {
-
-            m_childItemsMap[dirEntry->d_name] = true;
-
-            auto itemPtr = new FileSelectorModelItem(this, m_fM);
-            itemPtr->m_itemName = QString::fromUtf8(dirEntry->d_name);
-            auto newTmpPath = basePath + QLatin1Char('/') + itemPtr->m_itemName;
-            itemPtr->m_Path = QDir::toNativeSeparators(QDir(newTmpPath).absolutePath());
-
-            struct stat64 flstat{};
-            auto retcode = stat64(itemPtr->m_Path.toStdString().c_str(), &flstat);
-            if (retcode != 0) // error
-                continue;
-
-            if (S_ISDIR(flstat.st_mode))
-            {
-            }
-            else if S_ISREG(flstat.st_mode)
-            {
-                itemPtr->m_fileSizeBytes = flstat.st_size;
-                itemPtr->m_isDir = false;
-            }
-            else
-            {
-                continue;
-            }
-
-            itemPtr->m_filetime = flstat.st_mtime;
-
-            m_childItems.emplace_back(itemPtr);
-            newItem++;
-        }
+        auto itemName = QString::fromUtf8(dirEntry->d_name);
+        auto itemPath = QDir::toNativeSeparators(QDir(basePath + QLatin1Char('/') + itemName).absolutePath());
+        appendChild(itemName, itemPath);
     }
 
     closedir(dir);
 
+    testChild(parent);
 
 #endif // UNIX
-
-    if (newItem > 0)
-        SortChild(SortType::SortType_name_dirFirst);
 
 #ifdef SPEEDTEST
-    if (newItem)
-    {
-        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> diff = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-        auto debugInfo = QString("C T:%1 N:%2 S:%3 %4")
-                .arg(static_cast<int32_t>(m_childItems.size()))
-                .arg(newItem)
-                .arg(diff.count(), 0, 'f', 6)
-                .arg(m_Path);
-        qDebug() << debugInfo;
-    }
+
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+    auto debugInfo = QString("C T:%1 S:%2 %3")
+            .arg(static_cast<int32_t>(m_childItems.size()))
+            .arg(diff.count(), 0, 'f', 6)
+            .arg(m_Path);
+    qDebug() << debugInfo;
+
 #endif // SPEEDTEST
 
-    return static_cast<int32_t>(m_childItems.size());
-}
-
-int FileSelectorModelItem::childCount(bool firstChildOnly)
-{
-
-    if (!m_isDir)
-        return 0;
-
-    if (m_fM->IsRepaint() || m_locationId != eLocations::eLocations_None)
-        return static_cast<int32_t>(m_childItems.size());
-
-    const auto basePath = getPath();
-
-    if (/*m_childItems.size() > 1 ||*/ basePath.isEmpty())
-        return static_cast<int32_t>(m_childItems.size());
-
-    int itemCount = 0;
-
-#if defined(_WIN32) || defined(_WIN64)
-    const auto path = (basePath.back() == QLatin1Char('\\') || basePath.back() == QLatin1Char('/')) ?
-                (basePath + QLatin1String("*")).toStdWString() : (basePath + QLatin1String("\\*")).toStdWString();
-
-    WIN32_FIND_DATAW fd;
-    auto hFind = ::FindFirstFileW(path.c_str(), &fd);
-    if (hFind != INVALID_HANDLE_VALUE)
-    {
-        do {
-            if ((wcsncmp(L".", fd.cFileName, 1) == 0) || (wcsncmp(L"..", fd.cFileName, 2) == 0))
-                continue;
-            itemCount++;
-            if (firstChildOnly)
-                break;
-        } while (::FindNextFileW(hFind, &fd) != 0);
-        ::FindClose(hFind);
-    }
-#else // UNIX
-    DIR *dir = ::opendir(basePath.toStdString().c_str());
-    if (dir != nullptr)
-    {
-        struct dirent *dirEntry;
-        while ((dirEntry = ::readdir(dir)) != nullptr)
-        {
-            if (strcmp(dirEntry->d_name, ".") == 0 || strcmp(dirEntry->d_name, "..") == 0)
-                continue;
-            itemCount++;
-            if (firstChildOnly)
-                break;
-        }
-        closedir(dir);
-    }
-#endif // UNIX
-    return itemCount;
-}
-
-int FileSelectorModelItem::row() const
-{
-    if (!m_parentItem)
-        return 0;
-#if 0
-    auto childPtr = m_parentItem->m_childItems; //std::vector<FileSelectorModelItem*> m_childItems;
-    auto itr = std::find(childPtr.begin(), childPtr.end(), this);
-    if (itr != childPtr.cend())
-        return static_cast<int32_t>(std::distance(childPtr.begin(), itr));
-#else
-    auto ptr = m_parentItem->m_childItems.data(); //std::vector<FileSelectorModelItem*> m_childItems;
-    const auto elementCount = static_cast<int32_t>(m_parentItem->m_childItems.size());
-    for (int ind = 0; ind < elementCount; ind++)
-    {
-        if (*ptr++ == this)
-            return ind;
-    }
-#endif
-    return 0;
-}
-
-bool FileSelectorModelItem::hasChildren(const QModelIndex &)
-{
-    if (m_locationId != eLocations::eLocations_None)
-        return true;
-
-    const auto hasChild = fetchChild() > 0;
-    return hasChild;
+    return static_cast<int>(m_childItems.size());
 }
 
 void FileSelectorModelItem::SortChild(FileSelectorModelItem::SortType sortType)
 {
+    std::vector<FileSelectorModelItem *> &childItems = m_childItems;
     QCollator coll;
 #if defined (Q_OS_ANDROID)
     coll.setNumericMode(false);
 #else
     coll.setNumericMode(true);
 #endif
-    std::sort(m_childItems.begin(), m_childItems.end(), [&coll, &sortType](const FileSelectorModelItem *s1, const FileSelectorModelItem *s2)
+    std::sort(childItems.begin(), childItems.end(), [&coll, &sortType](const FileSelectorModelItem *s1, const FileSelectorModelItem *s2)
     {
         switch (sortType)
         {
@@ -652,4 +530,32 @@ QString FileSelectorModelItem::getItemExtension() const
 eLocations FileSelectorModelItem::getLocationId() const
 {
     return m_locationId;
+}
+
+void FileSelectorModelItem::testChild(const QModelIndex &parent)
+{
+
+    if (getLocationId() != eLocations::eLocations_folder_recent)
+        SortChild(FileSelectorModelItem::SortType::SortType_name_dirFirst);
+
+    for (int index = 0; index < static_cast<int>(m_childItems.size()); index++)
+    {
+        auto & item = m_childItems[static_cast<uint>(index)];
+        if(item->m_state != StateType::StateType_valid)
+        {
+            auto pmodel = const_cast<FileSelectorStandardModel*>(reinterpret_cast<const FileSelectorStandardModel*>(parent.model()));
+            emit pmodel->rowDataChanged(parent);
+            return;
+        }
+    }
+}
+
+FileSelectorModelItem::StateType FileSelectorModelItem::getState()
+{
+    return m_state;
+}
+
+void FileSelectorModelItem::setState(FileSelectorModelItem::StateType state)
+{
+    m_state = state;
 }

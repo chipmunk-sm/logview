@@ -133,19 +133,21 @@ public:
     QFont getItemFont() const { return m_itemFont; }
     QString getUserUserPath() const { return m_userUserPath; }
     QString getUserUserFilename() const { return m_userUserFilename; }
-    void ClearRecentLocations();
 
 public slots:
     void setItemHeight(int itemHeight);
     void setItemFont(QFont itemFont);
     void setUserUserPath(QString userUserPath);
     void setUserUserFilename(QString userUserFilename);
+    void rowDataChange(const QModelIndex &parent);
+    void onRowDataChange(const QModelIndex &parent);
 
 signals:
     void itemHeightChanged(int itemHeight);
     void itemFontChanged(QFont itemFont);
     void userUserPathChanged(QString userUserPath);
     void userUserFilenameChanged(QString userUserFilename);
+    void rowDataChanged(const QModelIndex &parent);
 
 private:
     constexpr static int32_t m_columnCount = 4;
@@ -168,6 +170,7 @@ private:
     QFont m_itemFont;
     QString m_userUserPath;
     QString m_userUserFilename;
+
 };
 
 #endif // FILESELECTORSTANDARDMODEL_H

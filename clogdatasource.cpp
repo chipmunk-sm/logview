@@ -201,7 +201,7 @@ void CLogDatasource::WatchThread2()
         {
             lastFileSize = 0;
             m_rowsInFile = 0;
-            //            qDebug() << "  onXrowCountChanged  fSize[" << fSize << "] < lastFileSize [" << lastFileSize << "] "  ;
+            //qDebug() << "  onXrowCountChanged  fSize[" << fSize << "] < lastFileSize [" << lastFileSize << "] "  ;
             m_callbackUpdate();
             continue;
         }
@@ -214,7 +214,7 @@ void CLogDatasource::WatchThread2()
         }
 
         // read and calculate new lines in a new file fragment
-        //        qDebug() << fSize;
+        //qDebug() << fSize;
         lastFileSize = fSize;
         if (bUtf32)
             calcLineCountInFile(reinterpret_cast<uint32_t*>(bufferPtr), bufferSize);
@@ -319,7 +319,7 @@ inline void CLogDatasource::calcLineCountInFile(T * ptr, int32_t bytesCount)
         if (m_rowsInFile.load() != lineCount)
             m_rowsInFile = lineCount;
 
-        //        qDebug() << "     onXrowCountChanged  m_rowsInFile[" << m_rowsInFile.load() << "] ";
+        //qDebug() << "     onXrowCountChanged  m_rowsInFile[" << m_rowsInFile.load() << "] ";
         for (int ind = 0; ind < m_rowsInFile.load();ind++ ) {
 
         }
