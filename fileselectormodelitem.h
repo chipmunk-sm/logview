@@ -36,6 +36,7 @@ public:
     int columnCount() const;
     FileSelectorModelItem* appendChild(eLocations locationId);
     void appendChild(const QString & name, const QString & path);
+    void appendChild(const QString & name, const QString & path, const bool isDir, const int64_t &fileSizeBytes, const int64_t &filetime);
     QString bytesToString(int64_t val, int64_t base = 1024) const;
     FileSelectorModelItem *child(int row) const;
     int fetchChild(const QModelIndex &parent);

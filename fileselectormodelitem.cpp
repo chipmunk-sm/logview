@@ -29,6 +29,8 @@
 #include <thread>
 #include <algorithm>
 
+//#define USESTDFILESYSTEM
+
 #if defined(USESTDFILESYSTEM)
 #   include <filesystem>
 #endif // defined(USESTDFILESYSTEM)
@@ -102,27 +104,28 @@ FileSelectorModelItem *FileSelectorModelItem::appendChild(eLocations locationId)
 
 void FileSelectorModelItem::appendChild(const QString &name, const QString &path)
 {
-
 #if  defined(_WIN32) || defined(_WIN64)
-
     struct _stat64 flstat{};
     if (_wstati64(path.toStdWString().c_str(), &flstat) != 0)
         return;
-
 #else
     struct stat64 flstat{};
     if (stat64(path.toStdString().c_str(), &flstat) != 0)
         return;
-
 #endif
+    appendChild(name, path, S_ISDIR(flstat.st_mode), flstat.st_size, flstat.st_mtime);
+}
+
+void FileSelectorModelItem::appendChild(const QString &name, const QString &path, const bool isDir, const int64_t &fileSizeBytes, const int64_t &filetime)
+{
 
     for (decltype(m_childItems.size()) index = 0; index < m_childItems.size(); index++) {
-        if(m_childItems[index]->m_itemName == name) {
+        if(m_childItems[index]->m_itemName == name && m_childItems[index]->m_isDir == isDir) {
             auto itemPtr = m_childItems[index];
-            itemPtr->m_state = (itemPtr->m_fileSizeBytes != flstat.st_size || itemPtr->m_filetime != flstat.st_mtime) ?
-                        FileSelectorModelItem::StateType::StateType_update : FileSelectorModelItem::StateType::StateType_valid;
-            itemPtr->m_fileSizeBytes = flstat.st_size;
-            itemPtr->m_filetime = flstat.st_mtime;
+            itemPtr->m_state = (itemPtr->m_fileSizeBytes != fileSizeBytes || itemPtr->m_filetime != filetime) ?
+                                FileSelectorModelItem::StateType::StateType_update : FileSelectorModelItem::StateType::StateType_valid;
+            itemPtr->m_fileSizeBytes = fileSizeBytes;
+            itemPtr->m_filetime = filetime;
             return;
         }
     }
@@ -130,9 +133,9 @@ void FileSelectorModelItem::appendChild(const QString &name, const QString &path
     auto itemPtr = new FileSelectorModelItem(this);
     itemPtr->m_itemName = name;
     itemPtr->m_Path = path;
-    itemPtr->m_isDir = S_ISDIR(flstat.st_mode);
-    itemPtr->m_fileSizeBytes = flstat.st_size;
-    itemPtr->m_filetime = flstat.st_mtime;
+    itemPtr->m_isDir = isDir;
+    itemPtr->m_fileSizeBytes = fileSizeBytes;
+    itemPtr->m_filetime = filetime;
     itemPtr->m_state = FileSelectorModelItem::StateType::StateType_new;
     m_childItems.emplace_back(itemPtr);
 }
@@ -207,75 +210,48 @@ int FileSelectorModelItem::fetchChild(const QModelIndex &parent)
 
     m_lasttime = nowtime;
 
+
 //#define SPEEDTEST
 #ifdef SPEEDTEST
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 #endif // SPEEDTEST
 
+    for (int index = 0; index < static_cast<int>(m_childItems.size()); index++)
+        m_childItems[static_cast<uint>(index)]->setState(FileSelectorModelItem::StateType::StateType_unknown);
+
 #if defined(USESTDFILESYSTEM)
 
-#error android fuck-up
-
-#if defined(_WIN32) || defined(_WIN64)
-    const auto path = basePath.toStdWString();
-#else
-    const auto path = basePath.toStdString();
-#endif
+//#error std::filesystem for android keep fuck-up prize? 2021 need retest
 
     try
     {
-        if (!std::filesystem::exists(path))
-        {
-            if (m_childItems.size())
-            {
-                qDeleteAll(m_childItems);
-                m_childItems.clear();
-            }
-            return 0;
-        }
-    }
-    catch (const std::exception&)
-    {
-        return 0;
-    }
-
-    try
-    {
-
-        for (const auto & fd : std::filesystem::directory_iterator(path))
-        {
-
 #if defined(_WIN32) || defined(_WIN64)
-            const auto tmpId = fd.path().wstring();
+        const auto path = basePath.toStdWString();
 #else
-            const auto tmpId = fd.path().string();
+        const auto path = basePath.toStdString();
 #endif
-            if (m_childItemsMap.find(tmpId) == m_childItemsMap.end())
+        if (std::filesystem::exists(path))
+        {
+            for (const auto & fd : std::filesystem::directory_iterator(path))
             {
-                m_childItemsMap[tmpId] = true;
-
-                auto itemPtr = new FileSelectorModelItem(this, m_fM);
-                itemPtr->m_itemName = QString::fromWCharArray(fd.path().filename().wstring().c_str());
-
-                if (!fd.is_directory())
-                {
-                    itemPtr->m_fileSizeBytes = static_cast<int64_t>(fd.file_size());
-                    itemPtr->m_isDir = false;
-                }
-                itemPtr->m_filetime = static_cast<int64_t>(fd.last_write_time().time_since_epoch().count());
 #if defined(_WIN32) || defined(_WIN64)
-                itemPtr->m_Path = QString::fromWCharArray(tmpId.c_str());
+                const auto itemName = QString::fromWCharArray(fd.path().filename().wstring().c_str());
+                const auto itemPath = QString::fromWCharArray(fd.path().wstring().c_str());
 #else
-                itemPtr->m_Path = QString::fromUtf8(tmpId.c_str());
+                const auto itemName = QString::fromUtf8(fd.path().filename().string().c_str());
+                const auto itemPath = QString::fromUtf8(fd.path().string().c_str());
 #endif
-                m_childItems.emplace_back(itemPtr);
-                newItem++;
+                appendChild(itemName,
+                            itemPath,
+                            fd.is_directory(),
+                            static_cast<int64_t>(fd.file_size()),
+                            static_cast<int64_t>(fd.last_write_time().time_since_epoch().count()));
             }
         }
     }
-    catch (const std::exception&)
+    catch (...)
     {
-        return 0;
+          return static_cast<int>(m_childItems.size());
     }
 
 #elif defined(_WIN32) || defined(_WIN64)
@@ -285,84 +261,57 @@ int FileSelectorModelItem::fetchChild(const QModelIndex &parent)
 
     WIN32_FIND_DATAW fd;
     auto hFind = ::FindFirstFileW(path.c_str(), &fd);
-    if (hFind == INVALID_HANDLE_VALUE)
-        return 0;
-
-    do
+    if (hFind != INVALID_HANDLE_VALUE)
     {
+        do{
+            if ((wcsncmp(L".", fd.cFileName, 1) == 0) || (wcsncmp(L"..", fd.cFileName, 2) == 0))
+                continue;
 
-        if ((wcsncmp(L".", fd.cFileName, 1) == 0) || (wcsncmp(L"..", fd.cFileName, 2) == 0))
-            continue;
+            const bool isDir = (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
 
-        const std::wstring tmpId(fd.cFileName);
+            LARGE_INTEGER filesize;
+            filesize.LowPart = fd.nFileSizeLow;
+            filesize.HighPart = static_cast<LONG>(fd.nFileSizeHigh);
+            const int64_t fileSizeBytes = static_cast<int64_t>(filesize.QuadPart);
+            const int64_t filetime = (static_cast<int64_t>(fd.ftLastWriteTime.dwHighDateTime) << 32) + fd.ftLastWriteTime.dwLowDateTime;
 
-        if (m_childItemsMap.find(tmpId) == m_childItemsMap.end())
-        {
-            m_childItemsMap[tmpId] = true;
+            const QString itemName = QString::fromWCharArray(fd.cFileName);
+            const QString itemPath = QDir::toNativeSeparators(basePath + QLatin1Char('/') + itemName);
 
-            auto itemPtr = new FileSelectorModelItem(this, m_fM);
+            appendChild(itemName, itemPath, isDir, fileSizeBytes, filetime);
 
-            itemPtr->m_itemName = QString::fromWCharArray(fd.cFileName);
+        } while (::FindNextFileW(hFind, &fd) != 0);
 
-            if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
-            {
-
-            }
-            else
-            {
-                LARGE_INTEGER filesize;
-                filesize.LowPart = fd.nFileSizeLow;
-                filesize.HighPart = static_cast<LONG>(fd.nFileSizeHigh);
-                itemPtr->m_fileSizeBytes = filesize.QuadPart;
-                itemPtr->m_isDir = false;
-            }
-            itemPtr->m_filetime = (static_cast<int64_t>(fd.ftLastWriteTime.dwHighDateTime) << 32) + fd.ftLastWriteTime.dwLowDateTime;
-            itemPtr->m_Path = QDir::toNativeSeparators(basePath + QLatin1Char('/') + itemPtr->m_itemName);
-
-            m_childItems.emplace_back(itemPtr);
-            newItem++;
-
-        }
-
-    } while (::FindNextFileW(hFind, &fd) != 0);
-
-    ::FindClose(hFind);
+        ::FindClose(hFind);
+    }
 
 #else // UNIX
 
     DIR *dir = ::opendir(basePath.toStdString().c_str());
-    if (dir == nullptr)
-        return 0;
-
-    for (int index = 0; index < static_cast<int>(m_childItems.size()); index++)
-        m_childItems[static_cast<uint>(index)]->setState(FileSelectorModelItem::StateType::StateType_unknown);
-
-    struct dirent *dirEntry;
-    while ((dirEntry = ::readdir(dir)) != nullptr)
+    if (dir != nullptr)
     {
-        if (strcmp(dirEntry->d_name, ".") == 0 || strcmp(dirEntry->d_name, "..") == 0)
-            continue;
+        struct dirent *dirEntry;
+        while ((dirEntry = ::readdir(dir)) != nullptr)
+        {
+            if (strcmp(dirEntry->d_name, ".") == 0 || strcmp(dirEntry->d_name, "..") == 0)
+                continue;
 
-        auto itemName = QString::fromUtf8(dirEntry->d_name);
-        auto itemPath = QDir::toNativeSeparators(QDir(basePath + QLatin1Char('/') + itemName).absolutePath());
-        appendChild(itemName, itemPath);
+            const auto itemName = QString::fromUtf8(dirEntry->d_name);
+            const auto itemPath = QDir::toNativeSeparators(QDir(basePath + QLatin1Char('/') + itemName).absolutePath());
+            appendChild(itemName, itemPath);
+        }
+        closedir(dir);
     }
 
-    closedir(dir);
+#endif // UNIX
 
     testChild(parent);
-
-#endif // UNIX
 
 #ifdef SPEEDTEST
 
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-    auto debugInfo = QString("C T:%1 S:%2 %3")
-            .arg(static_cast<int32_t>(m_childItems.size()))
-            .arg(diff.count(), 0, 'f', 6)
-            .arg(m_Path);
-    qDebug() << debugInfo;
+    std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+    qDebug().noquote() << "fetch << \t" << duration.count() << "\titems [" << static_cast<int32_t>(m_childItems.size()) << "]\t[" << getPath() << "]";
 
 #endif // SPEEDTEST
 

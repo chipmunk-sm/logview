@@ -8,6 +8,7 @@
 #include <QTreeView>
 #include <QTime>
 #include <QHeaderView>
+//#include <QDebug>
 #include <thread>
 
 
@@ -30,7 +31,6 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
             itemPtr->appendChild(nativePath, nativePath);
         }
     }
-
 }
 
 FileSelectorStandardModel::~FileSelectorStandardModel()
@@ -43,13 +43,12 @@ QString FileSelectorStandardModel::dataUrl(const QModelIndex &index)
     return getItem(index)->getPath();
 }
 
-QIcon FileSelectorStandardModel::dataImg(const QModelIndex &index)
+QIcon FileSelectorStandardModel::dataImg(const QModelIndex &index) const
 {
     if (index.column() != 0)
         return QIcon();
 
     auto item = getItem(index);
-
     auto locationId = item->getLocationId();
     if (locationId != eLocations::eLocations_None)
         return m_icon.GetTemeIcon(locationId);
@@ -102,13 +101,15 @@ void FileSelectorStandardModel::onRowDataChange(const QModelIndex &parent)
      if(!items)
          return;
 
+//     qDebug() << "onRowDataChange [" << items->getPath() << "] " << static_cast<int>(items->m_childItems.size());
+
      emit layoutAboutToBeChanged();
 
      for (int index = 0; index < static_cast<int>(items->m_childItems.size()); index++)
      {
          if(items->m_childItems[static_cast<uint>(index)]->getState() == FileSelectorModelItem::StateType::StateType_unknown)
          {
-             beginRemoveRows(parent, index, index + 1);
+             beginRemoveRows(parent, index, index);
              delete items->m_childItems[static_cast<uint>(index)];
              items->m_childItems[static_cast<uint>(index)] = nullptr;
              items->m_childItems.erase(items->m_childItems.begin() + index);
@@ -211,19 +212,7 @@ QVariant FileSelectorStandardModel::data(const QModelIndex &index, int role) con
 
     if (role == Qt::DecorationRole)
     {
-        if (index.column() != 0)
-            return QVariant();
-
-        auto item = getItem(index);
-        auto locationId = item->getLocationId();
-
-        if (locationId != eLocations::eLocations_None)
-            return m_icon.GetTemeIcon(locationId);
-
-        if (item->isDir())
-            return m_icon.GetDirIcon();
-
-        return m_icon.GetIconForFile(item->getPath());
+        return dataImg(index);
     }
 
     if (role == UrlStringRole)
@@ -304,7 +293,6 @@ FileSelectorModelItem *FileSelectorStandardModel::getItem(const QModelIndex &ind
         auto *item = static_cast<FileSelectorModelItem*>(index.internalPointer());
         if (item)
             return item;
-        return nullptr;
     }
     return m_root;
 }

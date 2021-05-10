@@ -127,7 +127,7 @@ public:
     bool IsRepaint() { return m_repaintMode; }
 
     Q_INVOKABLE QString dataUrl(const QModelIndex &index);
-    Q_INVOKABLE QIcon dataImg(const QModelIndex &index);
+    Q_INVOKABLE QIcon dataImg(const QModelIndex &index) const;
 
     int getItemHeight() const { return m_itemHeight; }
     QFont getItemFont() const { return m_itemFont; }
