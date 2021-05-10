@@ -7,4 +7,4 @@ Exec=logview
 Icon=logview_logo
 StartupNotify=true
 Terminal=false
-
+Type=Application
