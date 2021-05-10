@@ -8,10 +8,20 @@
 #include <QString>
 #include <QModelIndex>
 #include <map>
+#include <condition_variable>
 
 class FileSelectorModelItem
 {
 public:
+
+    typedef enum StateType
+    {
+        StateType_new,
+        StateType_update,
+        StateType_valid,
+        StateType_unknown
+    }StateType;
+
     typedef enum SortType
     {
         SortType_name,
@@ -21,18 +31,15 @@ public:
         SortType_date
     }SortType;
 
-    explicit FileSelectorModelItem(FileSelectorModelItem *parentItem, FileSelectorStandardModel* fileSelectorStandardModel,
-        eLocations m_locationId = eLocations::eLocations_None);
+    explicit FileSelectorModelItem(FileSelectorModelItem *parentItem, eLocations m_locationId = eLocations::eLocations_None);
     ~FileSelectorModelItem();
     int columnCount() const;
     FileSelectorModelItem* appendChild(eLocations locationId);
     void appendChild(const QString & name, const QString & path);
+    void appendChild(const QString & name, const QString & path, const bool isDir, const int64_t &fileSizeBytes, const int64_t &filetime);
     QString bytesToString(int64_t val, int64_t base = 1024) const;
-    FileSelectorModelItem *child(int row);
-    int fetchChild();
-    int childCount(bool firstChildOnly);
-    int row() const;
-    bool hasChildren(const QModelIndex &parent);
+    FileSelectorModelItem *child(int row) const;
+    int fetchChild(const QModelIndex &parent);
     void SortChild(SortType sortType);
     QString getItemName() const;
     QString getItemSize() const;
@@ -46,22 +53,20 @@ public:
     int64_t getFiletime() const;
     QString getItemExtension() const;
     eLocations getLocationId() const;
-
-private:
-    FileSelectorModelItem *m_parentItem = nullptr;
-    FileSelectorStandardModel* m_fM = nullptr;
+    void testChild(const QModelIndex &parent);
+    StateType getState();
+    void setState(StateType state);
     std::vector<FileSelectorModelItem*> m_childItems;
 
-#if defined(_WIN32) || defined(_WIN64)
-    std::map<std::wstring, bool> m_childItemsMap;
-#else
-    std::map<std::string, bool> m_childItemsMap;
-#endif
+private:
+    FileSelectorModelItem* m_parentItem = nullptr;
 
     eLocations   m_locationId = eLocations::eLocations_None;
     bool         m_isDir = true;
     int64_t      m_fileSizeBytes = 0;
     int64_t      m_filetime = 0;
+    StateType    m_state = StateType::StateType_unknown;
+    time_t       m_lasttime = 0;
 
     QString m_itemName;
     QString m_Path;

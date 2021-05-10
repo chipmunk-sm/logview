@@ -8,7 +8,6 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QStandardItemModel>
-#include <QTextCodec>
 #include <QMessageBox>
 #include <QWindow>
 #include <QScreen>
@@ -25,12 +24,14 @@
 #include <QToolTip>
 #include <QGestureEvent>
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QScroller>
 #include <QToolBar>
 #include <QMenu>
 #include <QLabel>
 #include <QSettings>
+#if !((QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 15) || QT_VERSION_MAJOR >= 6)
+#include <QDesktopWidget>
+#endif
 
 #include <chrono>
 #include <utility>
@@ -58,6 +59,8 @@
 #else
 #   define DEBUGTRACE()
 #endif
+
+#define KEY_GEOMETRY "cfg/KEY_GEOMETRY"
 
 LogViewWidget::LogViewWidget(QString windowTitle, QString fileName)
     : m_windowTitle(std::move(windowTitle))
@@ -226,22 +229,46 @@ LogViewWidget::LogViewWidget(QString windowTitle, QString fileName)
     pal.setColor(QPalette::HighlightedText, Qt::black);
     m_table->setPalette(pal);
 
-#if defined (Q_OS_ANDROID)
-    resize(QApplication::desktop()->availableGeometry(this).size());
-#else
-    resize(QApplication::desktop()->availableGeometry(this).size() / 2);
-#endif
     displayRowNumber2(false);
     displayMenu2(false);
     displayButtons2(false);
     autoscrollEnable2(false);
 
     connect(QCoreApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)), this, SLOT(onChangeStateEvent(Qt::ApplicationState)));
+
+#if defined (Q_OS_ANDROID)
+
+#else
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName());
+
+    const QByteArray restoredGeometry = settings.value(QLatin1String(KEY_GEOMETRY)).toByteArray();
+    if (restoredGeometry.isEmpty() || !restoreGeometry(restoredGeometry))
+    {
+#if (QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 15) || QT_VERSION_MAJOR >= 6
+        const QRect availableGeometry = screen()->availableGeometry();
+#else
+        const QRect availableGeometry = QApplication::desktop()->availableGeometry();
+#endif
+        const QSize size = (availableGeometry.size() * 4) / 5;
+        resize(size);
+        move(availableGeometry.center() - QPoint(size.width(), size.height()) / 2);
+    }
+#endif
+
 }
 
 LogViewWidget::~LogViewWidget()
 {
     DEBUGTRACE();
+#if defined (Q_OS_ANDROID)
+
+#else
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    settings.setValue(QLatin1String(KEY_GEOMETRY), saveGeometry());
+#endif
+
     m_exit = true;
     m_scaleCondition.notify_all();
 
@@ -549,11 +576,11 @@ void LogViewWidget::onResetZoom()
     IconHelper::ResetIconSize();
     m_forceUpdateZoom = true;
     QMetaObject::invokeMethod(this, "onUpdateTreeViewStyle");
-#if defined (Q_OS_ANDROID)
-    auto sz = QApplication::desktop()->availableGeometry(this).size();
-    if(sz.width() < width() || sz.height() < height())
-        resize(sz);
-#endif
+//#if defined (Q_OS_ANDROID)
+//    auto sz = QApplication::desktop()->availableGeometry(this).size();
+//    if(sz.width() < width() || sz.height() < height())
+//        resize(sz);
+//#endif
 
 }
 

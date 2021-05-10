@@ -85,7 +85,7 @@ QPixmap IconHelper::CreateIcon(const QString &iconTextT, const QString& iconText
         {
             newFont.setPixelSize(newPixelSize);
             QFontMetrics fm(newFont);
-#if QT_VERSION_MAJOR >=5 && QT_VERSION_MINOR >= 11
+#if (QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 11) || QT_VERSION_MAJOR >= 6
             auto tmpWidth = fm.horizontalAdvance(iconTextB);
 #else
             auto tmpWidth = fm.width(iconTextB);

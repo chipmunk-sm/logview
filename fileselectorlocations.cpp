@@ -37,7 +37,9 @@ void FileSelectorLocations::getRootPathList(std::vector<std::pair<eLocations, st
     PermissionHelper::checkPermission(PermissionHelper::PermissionType::Storage);
     PermissionHelper::checkPermission(PermissionHelper::PermissionType::External_Storage);
 
-    GetRecentLocations(locationsList);
+    //GetRecentLocations(locationsList);
+    std::vector<QString> tmp;
+    locationsList.emplace_back(eLocations::eLocations_folder_recent, tmp);
 
     GetLocations(eLocations::eLocations_folder_documents, locationsList, skipAppFolder);
     GetLocations(eLocations::eLocations_folder_download,  locationsList, skipAppFolder);
@@ -48,7 +50,9 @@ void FileSelectorLocations::getRootPathList(std::vector<std::pair<eLocations, st
     if(!skipAppFolder)
     {
         GetLocations(eLocations::eLocations_folder_temp,    locationsList, skipAppFolder);
+#if (QT_VERSION_MAJOR < 6)
         GetLocations(eLocations::eLocations_folder_data,    locationsList, skipAppFolder);
+#endif
         GetLocations(eLocations::eLocations_folder_config,  locationsList, skipAppFolder);
         GetLocations(eLocations::eLocations_folder_generic, locationsList, skipAppFolder);
     }

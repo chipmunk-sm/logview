@@ -206,7 +206,12 @@ void LogViewTable::paintEvent(QPaintEvent *event)
     if (horizontalHeader->count() == 0 || verticalHeader->count() == 0)
         return;
 
+#if (QT_VERSION_MAJOR < 6)
     auto option = viewOptions();
+#else
+    QStyleOptionViewItem option;
+    initViewItemOption(&option);
+#endif
     const auto offset = dirtyRegionOffset();
     const auto showGrid = QTableView::showGrid();
     const auto gridSize = showGrid ? 1 : 0;
@@ -239,7 +244,7 @@ void LogViewTable::paintEvent(QPaintEvent *event)
 
     const QRegion region = event->region().translated(offset);
 
-    foreach (QRect dirtyArea , region)
+    for (QRect dirtyArea : region)
     {
 
         dirtyArea.setBottom(qMin(dirtyArea.bottom(), int(y)));

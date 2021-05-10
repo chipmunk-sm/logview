@@ -201,7 +201,7 @@ void CLogDatasource::WatchThread2()
         {
             lastFileSize = 0;
             m_rowsInFile = 0;
-            //            qDebug() << "  onXrowCountChanged  fSize[" << fSize << "] < lastFileSize [" << lastFileSize << "] "  ;
+            //qDebug() << "  onXrowCountChanged  fSize[" << fSize << "] < lastFileSize [" << lastFileSize << "] "  ;
             m_callbackUpdate();
             continue;
         }
@@ -214,7 +214,7 @@ void CLogDatasource::WatchThread2()
         }
 
         // read and calculate new lines in a new file fragment
-        //        qDebug() << fSize;
+        //qDebug() << fSize;
         lastFileSize = fSize;
         if (bUtf32)
             calcLineCountInFile(reinterpret_cast<uint32_t*>(bufferPtr), bufferSize);
@@ -319,7 +319,7 @@ inline void CLogDatasource::calcLineCountInFile(T * ptr, int32_t bytesCount)
         if (m_rowsInFile.load() != lineCount)
             m_rowsInFile = lineCount;
 
-        //        qDebug() << "     onXrowCountChanged  m_rowsInFile[" << m_rowsInFile.load() << "] ";
+        //qDebug() << "     onXrowCountChanged  m_rowsInFile[" << m_rowsInFile.load() << "] ";
         for (int ind = 0; ind < m_rowsInFile.load();ind++ ) {
 
         }
@@ -365,21 +365,19 @@ QString CLogDatasource::getLogLine(int64_t indRow) const
 
     if (m_bUtf32)
     {
-        auto charCount = static_cast<int32_t>(res) / static_cast<int32_t>(sizeof(uint32_t));
-        return QString::fromUcs4(reinterpret_cast<const uint32_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
+        auto charCount = static_cast<char32_t>(res) / static_cast<char32_t>(sizeof(char32_t));
+        return QString::fromUcs4(reinterpret_cast<const char32_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
     }
     else if (m_bUtf16)
     {
-        auto charCount = static_cast<int32_t>(res) / static_cast<int32_t>(sizeof(uint16_t));
-        return QString::fromUtf16(reinterpret_cast<const uint16_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
+        auto charCount = static_cast<char32_t>(res) / static_cast<char32_t>(sizeof(char16_t));
+        return QString::fromUtf16(reinterpret_cast<const char16_t*>(ptr), charCount).replace('\n', "").replace('\r', "");
     }
     else
     {
         auto charCount = static_cast<int32_t>(res);
         return QString::fromUtf8(reinterpret_cast<const char*>(ptr), charCount).replace('\n', "").replace('\r', "");
     }
-
-    return QString();
 }
 
 int64_t CLogDatasource::getLogLineCount() const

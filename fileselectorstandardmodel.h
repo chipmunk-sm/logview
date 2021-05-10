@@ -127,7 +127,7 @@ public:
     bool IsRepaint() { return m_repaintMode; }
 
     Q_INVOKABLE QString dataUrl(const QModelIndex &index);
-    Q_INVOKABLE QIcon dataImg(const QModelIndex &index);
+    Q_INVOKABLE QIcon dataImg(const QModelIndex &index) const;
 
     int getItemHeight() const { return m_itemHeight; }
     QFont getItemFont() const { return m_itemFont; }
@@ -139,12 +139,15 @@ public slots:
     void setItemFont(QFont itemFont);
     void setUserUserPath(QString userUserPath);
     void setUserUserFilename(QString userUserFilename);
+    void rowDataChange(const QModelIndex &parent);
+    void onRowDataChange(const QModelIndex &parent);
 
 signals:
     void itemHeightChanged(int itemHeight);
     void itemFontChanged(QFont itemFont);
     void userUserPathChanged(QString userUserPath);
     void userUserFilenameChanged(QString userUserFilename);
+    void rowDataChanged(const QModelIndex &parent);
 
 private:
     constexpr static int32_t m_columnCount = 4;
@@ -167,6 +170,7 @@ private:
     QFont m_itemFont;
     QString m_userUserPath;
     QString m_userUserFilename;
+
 };
 
 #endif // FILESELECTORSTANDARDMODEL_H

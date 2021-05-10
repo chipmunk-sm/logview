@@ -9,7 +9,6 @@
 #include "versionhelper.h"
 
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
@@ -24,6 +23,10 @@
 #include <QToolBar>
 #include <QSettings>
 #include <QTreeView>
+#include <QScreen>
+#if !((QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 15) || QT_VERSION_MAJOR >= 6)
+#include <QDesktopWidget>
+#endif
 
 #include <thread>
 #include <cmath>
@@ -45,6 +48,8 @@
 #else
 #   define DEBUGTRACE()
 #endif
+
+#define KEY_GEOMETRY "cfg/KEY_GEOMETRY"
 
 FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QString defaultName, QWidget * parent)
     : QWidget(parent)
@@ -80,14 +85,14 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
     m_fileSelector->header()->setSectionsClickable(true);
     m_fileSelector->header()->setHighlightSections(false);
     m_fileSelector->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-    auto modelX = new FileSelectorStandardModel(m_fileSelector.get());
+    m_fileSelector->setSelectionBehavior(QAbstractItemView::SelectItems);
 
     QPalette pal = palette();
     pal.setColor(QPalette::Highlight, QColor(0xC9,0xE7,0xFB));
     pal.setColor(QPalette::HighlightedText, Qt::black);
     m_fileSelector->setPalette(pal);
 
+    auto modelX = new FileSelectorStandardModel(m_fileSelector.get());
     m_fileSelector->setModel(modelX);
     connect(m_fileSelector.get(), &QTreeView::clicked, this, &FileSelector::onItemClicked);
     connect(m_fileSelector.get(), &QTreeView::doubleClicked, this, &FileSelector::onItemDoubleClicked);
@@ -186,12 +191,6 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
         (std::thread(threadWatchdog, this)).detach();
     }
 
-#if defined (Q_OS_ANDROID)
-    resize(QApplication::desktop()->availableGeometry(this).size());
-#else
-    resize(QApplication::desktop()->availableGeometry(this).size() / 2);
-#endif
-
     auto tmpPath = QDir::cleanPath(rootPath);
     if(QFileInfo::exists(tmpPath))
     {
@@ -215,10 +214,38 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
     m_lineEdit->setText(tmpPath);
     m_lineEdit->setFocus();
 
+
+#if defined (Q_OS_ANDROID)
+
+#else
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    const QByteArray restoredGeometry = settings.value(QLatin1String(KEY_GEOMETRY)).toByteArray();
+    if (restoredGeometry.isEmpty() || !restoreGeometry(restoredGeometry))
+    {
+
+#if (QT_VERSION_MAJOR >= 5 && QT_VERSION_MINOR >= 15) || QT_VERSION_MAJOR >= 6
+        const QRect availableGeometry = screen()->availableGeometry();
+#else
+        const QRect availableGeometry = QApplication::desktop()->availableGeometry();
+#endif
+        const QSize size = (availableGeometry.size() * 4) / 5;
+        resize(size);
+        move(availableGeometry.center() - QPoint(size.width(), size.height()) / 2);
+    }
+#endif
+
 }
 
 FileSelector::~FileSelector()
 {
+#if defined (Q_OS_ANDROID)
+
+#else
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope, QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    settings.setValue(QLatin1String(KEY_GEOMETRY), saveGeometry());
+#endif
     shutdown();
 }
 
@@ -471,6 +498,7 @@ void FileSelector::updateTreeViewStyle(const QString & val)
         "QScrollBar::sub-line:vertical  { height: 0px; subcontrol-position: top;    subcontrol-origin: margin; }"
         "QScrollBar::add-line:horizontal { width: 0px; subcontrol-position: right;  subcontrol-origin: margin; }"
         "QScrollBar::sub-line:horizontal { width: 0px; subcontrol-position: left;   subcontrol-origin: margin; }"
+        "QTreeView::item:hover { background: #e6f3fb; }"
         "QToolBar{ icon-size: " + val + "px; }"
         );
 
@@ -550,19 +578,11 @@ void FileSelector::onUpdateTreeViewStyle()
 
     m_forceUpdateZoom = false;
 
-    auto xModel = qobject_cast<FileSelectorStandardModel*>(m_fileSelector->model());
-    if (xModel)
-        xModel->RepaintMode(true);
-
     updateTreeViewStyle(IconHelper::GetIconSize(m_default_Font, m_scale));
 
     toolTip();
 
     m_scale = 0;
-
-    if (xModel)
-        xModel->RepaintMode(false);
-
 }
 
 void FileSelector::watchdogThread()
@@ -585,11 +605,11 @@ void FileSelector::onResetZoom()
     IconHelper::ResetIconSize();
     m_forceUpdateZoom = true;
     QMetaObject::invokeMethod(this, "onUpdateTreeViewStyle");
-#if defined (Q_OS_ANDROID)
-    auto sz = QApplication::desktop()->availableGeometry(this).size();
-    if(sz.width() < width() || sz.height() < height())
-        resize(sz);
-#endif
+//#if defined (Q_OS_ANDROID)
+//    auto sz = QApplication::desktop()->availableGeometry(this).size();
+//    if(sz.width() < width() || sz.height() < height())
+//        resize(sz);
+//#endif
 
 }
 
@@ -623,6 +643,12 @@ void FileSelector::onTextChanged(const QString & path)
     //m_buttonSelect->setVisible(!tmpPath.isEmpty());
 }
 
+void FileSelector::onClearRecentLocations()
+{
+    FileSelectorLocations::ClearRecentLocations();
+    m_fileSelector->update();
+}
+
 void FileSelector::onMenu()
 {
 
@@ -645,12 +671,14 @@ void FileSelector::onMenu()
                 , &QAction::triggered, this, &FileSelector::onResetColumnSize);
 
     auto act = actionsMenu->addAction(m_selectedPath.isEmpty()? QPixmap(":/data/b_open1.1.svg") : QPixmap(":/data/b_open2.1.svg"), tr("Select"));
+
     if(m_selectedPath.isEmpty())
         act->setEnabled(false);
+
     connect(act, &QAction::triggered , this, &FileSelector::onSelectFile);
 
     connect(actionsMenu->addAction(QPixmap(":/data/b_close.1.svg"), tr("Clear recent locations"))
-                , &QAction::triggered, &FileSelectorLocations::ClearRecentLocations);
+                , &QAction::triggered, this, &FileSelector::onClearRecentLocations);
 
     connect(actionsMenu->addAction(QPixmap(":/data/b_close.1.svg"), tr("Quit application"))
                 , &QAction::triggered, this, &FileSelector::shutdown);
