@@ -85,14 +85,14 @@ FileSelector::FileSelector(bool saveFileMde, const QString & rootPath, const QSt
     m_fileSelector->header()->setSectionsClickable(true);
     m_fileSelector->header()->setHighlightSections(false);
     m_fileSelector->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-    auto modelX = new FileSelectorStandardModel(m_fileSelector.get());
+    m_fileSelector->setSelectionBehavior(QAbstractItemView::SelectItems);
 
     QPalette pal = palette();
     pal.setColor(QPalette::Highlight, QColor(0xC9,0xE7,0xFB));
     pal.setColor(QPalette::HighlightedText, Qt::black);
     m_fileSelector->setPalette(pal);
 
+    auto modelX = new FileSelectorStandardModel(m_fileSelector.get());
     m_fileSelector->setModel(modelX);
     connect(m_fileSelector.get(), &QTreeView::clicked, this, &FileSelector::onItemClicked);
     connect(m_fileSelector.get(), &QTreeView::doubleClicked, this, &FileSelector::onItemDoubleClicked);
@@ -498,6 +498,7 @@ void FileSelector::updateTreeViewStyle(const QString & val)
         "QScrollBar::sub-line:vertical  { height: 0px; subcontrol-position: top;    subcontrol-origin: margin; }"
         "QScrollBar::add-line:horizontal { width: 0px; subcontrol-position: right;  subcontrol-origin: margin; }"
         "QScrollBar::sub-line:horizontal { width: 0px; subcontrol-position: left;   subcontrol-origin: margin; }"
+        "QTreeView::item:hover { background: #e6f3fb; }"
         "QToolBar{ icon-size: " + val + "px; }"
         );
 
