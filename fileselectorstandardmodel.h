@@ -125,6 +125,13 @@ public:
     void RepaintMode(bool enabled) { m_repaintMode = enabled; }
     bool IsRepaint() { return m_repaintMode; }
 
+    Q_INVOKABLE bool isDir(QString path);
+    Q_INVOKABLE bool isFile(QString path);
+    Q_INVOKABLE bool isFileExist(QString path);
+    Q_INVOKABLE bool mkPath(QString xpath);
+
+    Q_INVOKABLE bool isFileInFilesystem(const QModelIndex &index);
+    Q_INVOKABLE bool isDirInFilesystem(const QModelIndex &index);
     Q_INVOKABLE QString dataUrl(const QModelIndex &index);
     Q_INVOKABLE QIcon dataImg(const QModelIndex &index) const;
 
