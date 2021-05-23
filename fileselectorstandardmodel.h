@@ -108,7 +108,6 @@ public:
     Q_PROPERTY(int     itemHeight       READ getItemHeight       WRITE setItemHeight       NOTIFY itemHeightChanged)
     Q_PROPERTY(QFont   itemFont         READ getItemFont         WRITE setItemFont         NOTIFY itemFontChanged)
     Q_PROPERTY(QString userUserPath     READ getUserUserPath     WRITE setUserUserPath     NOTIFY userUserPathChanged)
-    Q_PROPERTY(QString userUserFilename READ getUserUserFilename WRITE setUserUserFilename NOTIFY userUserFilenameChanged)
 
 public:
     enum Role {
@@ -132,13 +131,11 @@ public:
     int getItemHeight() const { return m_itemHeight; }
     QFont getItemFont() const { return m_itemFont; }
     QString getUserUserPath() const { return m_userUserPath; }
-    QString getUserUserFilename() const { return m_userUserFilename; }
 
 public slots:
     void setItemHeight(int itemHeight);
     void setItemFont(QFont itemFont);
     void setUserUserPath(QString userUserPath);
-    void setUserUserFilename(QString userUserFilename);
     void rowDataChange(const QModelIndex &parent);
     void onRowDataChange(const QModelIndex &parent);
 
@@ -146,7 +143,6 @@ signals:
     void itemHeightChanged(int itemHeight);
     void itemFontChanged(QFont itemFont);
     void userUserPathChanged(QString userUserPath);
-    void userUserFilenameChanged(QString userUserFilename);
     void rowDataChanged(const QModelIndex &parent);
 
 private:
@@ -169,7 +165,6 @@ private:
     int m_itemHeight = 16;
     QFont m_itemFont;
     QString m_userUserPath;
-    QString m_userUserFilename;
 
 };
 

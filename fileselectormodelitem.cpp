@@ -10,8 +10,8 @@
 #   include <dirent.h>
 #endif
 
-#   include <sys/stat.h>
 #   include <sys/types.h>
+#   include <sys/stat.h>
 
 #if !defined(S_ISDIR)
 #   define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
@@ -105,8 +105,8 @@ FileSelectorModelItem *FileSelectorModelItem::appendChild(eLocations locationId)
 void FileSelectorModelItem::appendChild(const QString &name, const QString &path)
 {
 #if  defined(_WIN32) || defined(_WIN64)
-    struct _stat64 flstat{};
-    if (_wstati64(path.toStdWString().c_str(), &flstat) != 0)
+    struct __stat64 flstat{};
+    if (_wstat64(path.toStdWString().c_str(), &flstat) != 0)
         return;
 #else
     struct stat64 flstat{};
@@ -405,8 +405,8 @@ QString FileSelectorModelItem::getItemSize() const
 int64_t FileSelectorModelItem::getItemSizeBytes() const
 {
 #if  defined(_WIN32) || defined(_WIN64)
-    struct _stat64 flstat{};
-    if (_wstati64(m_Path.toStdWString().c_str(), &flstat) != 0)
+    struct __stat64 flstat{};
+    if (_wstat64(m_Path.toStdWString().c_str(), &flstat) != 0)
         return 0;
     return flstat.st_size;
 #else
@@ -427,8 +427,8 @@ QString FileSelectorModelItem::getItemType() const
 QString FileSelectorModelItem::getItemDate() const
 {
 #if  defined(_WIN32) || defined(_WIN64)
-    struct _stat64 flstat{};
-    if (_wstati64(m_Path.toStdWString().c_str(), &flstat) != 0)
+    struct __stat64 flstat{};
+    if (_wstat64(m_Path.toStdWString().c_str(), &flstat) != 0)
         return QString();
 #else
     struct stat64 flstat{};

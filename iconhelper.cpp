@@ -29,8 +29,8 @@
 #   include <dirent.h>
 #endif // defined(_WIN32) || defined(_WIN64)
 
-#   include <sys/stat.h>
 #   include <sys/types.h>
+#   include <sys/stat.h>
 
 #if (defined(_WIN32) || defined(_WIN64)) && !defined(S_ISDIR)
 #   define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
@@ -250,8 +250,8 @@ QIcon IconHelper::GetIconForFile(const QString& sourceFile) const
    
 #if  defined(_WIN32) || defined(_WIN64)
 
-    struct _stat64 flstat{};
-    if (_wstati64(filename.toStdWString().c_str(), &flstat) != 0)
+    struct __stat64 flstat{};
+    if (_wstat64(filename.toStdWString().c_str(), &flstat) != 0)
         return m_icoFile;
 
 #else

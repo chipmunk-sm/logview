@@ -8,8 +8,22 @@
 #include <QTreeView>
 #include <QTime>
 #include <QHeaderView>
-//#include <QDebug>
+
 #include <thread>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#if !(defined(_WIN32) || defined(_WIN64))
+#   include <unistd.h>
+#endif
+
+#if !defined(S_ISDIR)
+#   define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
+#endif
+
+#if !defined(S_ISREG)
+#   define S_ISREG(mode) (((mode) & _S_IFREG) == _S_IFREG)
+#endif
 
 
 FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
@@ -36,6 +50,94 @@ FileSelectorStandardModel::FileSelectorStandardModel(QObject *parent)
 FileSelectorStandardModel::~FileSelectorStandardModel()
 {
     delete m_root;
+}
+
+bool FileSelectorStandardModel::isDir(QString path)
+{
+#if  defined(_WIN32) || defined(_WIN64)
+    struct __stat64 flstat{};
+    if (_wstat64(path.toStdWString().c_str(), &flstat) != 0)
+        return false;
+#else
+    struct stat64 flstat{};
+    if (stat64(path.toStdString().c_str(), &flstat) != 0)
+        return false;
+#endif
+    return S_ISDIR(flstat.st_mode);
+}
+
+bool FileSelectorStandardModel::isFile(QString path)
+{
+#if  defined(_WIN32) || defined(_WIN64)
+    struct __stat64 flstat{};
+    if (_wstat64(path.toStdWString().c_str(), &flstat) != 0)
+        return false;
+#else
+    struct stat64 flstat{};
+    if (stat64(path.toStdString().c_str(), &flstat) != 0)
+        return false;
+#endif
+    return S_ISREG(flstat.st_mode);
+}
+
+bool FileSelectorStandardModel::isFileExist(QString path)
+{
+    //R_OK read permission
+    //W_OK write permission
+    //X_OK execute permission
+    // (R_OK | W_OK) read write permission
+    //on Windows W_OK do not work as expected
+#if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
+    typedef enum acesstype{
+        F_OK = 0,//  Test for existence of file.
+        W_OK = 2,//  Test for write permission.
+        R_OK = 4 //  Test for read permission.
+    }acesstype;
+    return ( _waccess( path.toStdWString().c_str(), acesstype::F_OK ) == 0 );
+#else
+    return ( access( path.toStdString().c_str(), F_OK ) == 0 );
+#endif
+
+}
+
+bool FileSelectorStandardModel::mkPath(QString xpath)
+{
+
+#if defined(_WIN32) || defined(_WIN64)
+#   define XMKDIR(xpath, attr) _wmkdir(xpath)
+#   define XU(xstring) L##xstring
+#   define XSTR QString::fromStdWString
+    auto path = xpath.toStdWString();
+#else
+#   define XMKDIR(xpath, attr) mkdir(xpath, attr)
+#   define XU(xstring) xstring
+#   define XSTR QString::fromStdString
+    auto path = xpath.toStdString();
+#endif
+
+    if('/' == path.back() || '\\' == path.back())
+       path.pop_back();
+
+    if(path.empty())
+        return false;
+
+    if (XMKDIR(path.c_str(), 0777) == 0 || errno == EEXIST)
+        return true;
+
+    return  mkPath(XSTR(path.substr(0, path.find_last_of(XU("/\\"))))) &&
+            (XMKDIR(path.c_str(), 0777) == 0 || errno == EEXIST);
+}
+
+bool FileSelectorStandardModel::isDirInFilesystem(const QModelIndex &index)
+{
+    const auto & item = getItem(index);
+    return item->isDir() && item->getLocationId() == eLocations::eLocations_None;
+}
+
+bool FileSelectorStandardModel::isFileInFilesystem(const QModelIndex &index)
+{
+    const auto & item = getItem(index);
+    return !item->isDir() && item->getLocationId() == eLocations::eLocations_None;
 }
 
 QString FileSelectorStandardModel::dataUrl(const QModelIndex &index)
@@ -85,14 +187,6 @@ void FileSelectorStandardModel::setUserUserPath(QString userUserPath)
         return;
     m_userUserPath = userUserPath;
     emit userUserPathChanged(m_userUserPath);
-}
-
-void FileSelectorStandardModel::setUserUserFilename(QString userUserFilename)
-{
-    if (m_userUserFilename == userUserFilename)
-        return;
-    m_userUserFilename = userUserFilename;
-    emit userUserFilenameChanged(m_userUserFilename);
 }
 
 void FileSelectorStandardModel::onRowDataChange(const QModelIndex &parent)
